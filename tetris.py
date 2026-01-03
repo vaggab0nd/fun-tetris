@@ -82,6 +82,7 @@ class TetrisGame:
         self.lines_cleared = 0
         self.level = 1
         self.game_over = False
+        self.paused = False
 
     def is_valid_position(self, piece: Tetromino) -> bool:
         """Check if a piece position is valid (within bounds and not colliding)"""
@@ -246,7 +247,15 @@ class TetrisUI:
         print("  W - Rotate")
         print("  S - Soft drop")
         print("  SPACE - Hard drop")
+        print("  P - Pause/Resume")
         print("  Q - Quit")
+
+        # Show paused message
+        if game.paused:
+            print("\n" + "=" * 22)
+            print("    ⏸  PAUSED  ⏸")
+            print("  Press P to resume")
+            print("=" * 22)
 
 
 def get_key():
@@ -291,11 +300,12 @@ def main():
         while not game.game_over:
             ui.render(game)
 
-            # Auto-drop based on level
-            current_time = time.time()
-            if current_time - last_fall > fall_speed / game.level:
-                game.move_down()
-                last_fall = current_time
+            # Auto-drop based on level (only if not paused)
+            if not game.paused:
+                current_time = time.time()
+                if current_time - last_fall > fall_speed / game.level:
+                    game.move_down()
+                    last_fall = current_time
 
             # Non-blocking input check
             import select
@@ -304,16 +314,19 @@ def main():
 
                 if key == 'q':
                     break
-                elif key == 'a':
-                    game.move_left()
-                elif key == 'd':
-                    game.move_right()
-                elif key == 's':
-                    game.move_down()
-                elif key == 'w':
-                    game.rotate()
-                elif key == ' ':
-                    game.hard_drop()
+                elif key == 'p':
+                    game.paused = not game.paused
+                elif not game.paused:  # Only process game moves when not paused
+                    if key == 'a':
+                        game.move_left()
+                    elif key == 'd':
+                        game.move_right()
+                    elif key == 's':
+                        game.move_down()
+                    elif key == 'w':
+                        game.rotate()
+                    elif key == ' ':
+                        game.hard_drop()
 
         # Game over screen
         ui.render(game)

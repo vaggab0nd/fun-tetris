@@ -40,6 +40,7 @@ A lightweight, terminal-based Tetris implementation in Python - perfect for lear
 - **W** - Rotate piece clockwise
 - **S** - Soft drop (move down faster)
 - **SPACE** - Hard drop (instant drop)
+- **P** - Pause/Resume game
 - **Q** - Quit game
 
 ## Scoring System
