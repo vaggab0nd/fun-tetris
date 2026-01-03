@@ -57,23 +57,13 @@ A lightweight Tetris implementation available in two versions - terminal-based P
 
 ### Python Terminal Version
 
-**Requirements:**
-- Python 3.6 or higher
-- Unix/Linux terminal (uses termios for keyboard input)
-- No external dependencies!
-
-**How to Run:**
-```bash
-chmod +x tetris.py
-python3 tetris.py
-```
-
-**Terminal Controls:**
-- **A/D** - Move left/right
-- **W** - Rotate
-- **S** - Soft drop
-- **Space** - Hard drop
-- **Q** - Quit
+- **A** - Move piece left
+- **D** - Move piece right
+- **W** - Rotate piece clockwise
+- **S** - Soft drop (move down faster)
+- **SPACE** - Hard drop (instant drop)
+- **P** - Pause/Resume game
+- **Q** - Quit game
 
 ## Scoring System
 
