@@ -1,0 +1,151 @@
+{
+  "info": {
+    "name": "Lyft-Style Stripe Connect – Fixed Full Flow Runner",
+    "_postman_id": "b7d6c5f4-abcdef-1234-5678-xyz987",
+    "description": "End-to-end Postman collection: Create Custom account with transfers, add test bank at creation, create customer, and execute destination charge with automatic ID handling.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Full Flow Runner",
+      "item": [
+        {
+          "name": "Step 1: Create Custom Connect Account + Test Bank",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "type", "value": "custom" },
+                { "key": "country", "value": "US" },
+                { "key": "business_type", "value": "individual" },
+                { "key": "requested_capabilities[]", "value": "transfers" },
+                { "key": "requested_capabilities[]", "value": "card_payments" },
+                { "key": "individual[first_name]", "value": "Easy" },
+                { "key": "individual[last_name]", "value": "Rider" },
+                { "key": "individual[email]", "value": "driver@rider.com" },
+                { "key": "individual[dob][day]", "value": "1" },
+                { "key": "individual[dob][month]", "value": "1" },
+                { "key": "individual[dob][year]", "value": "1990" },
+                { "key": "individual[address][line1]", "value": "1600 Amphitheatre Parkway" },
+                { "key": "individual[address][city]", "value": "Mountain View" },
+                { "key": "individual[address][state]", "value": "CA" },
+                { "key": "individual[address][postal_code]", "value": "94043" },
+                { "key": "individual[address][country]", "value": "US" },
+                { "key": "external_account", "value": "btok_us_verified" }
+              ]
+            },
+            "url": {
+              "raw": "https://api.stripe.com/v1/accounts",
+              "protocol": "https",
+              "host": ["api","stripe","com"],
+              "path": ["v1","accounts"]
+            },
+            "auth": { "type": "basic", "basic":[ { "key":"username","value":"{{STRIPE_SECRET_KEY}}" }, { "key":"password","value":"" } ] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let jsonData = pm.response.json();",
+                  "pm.environment.set(\"CONNECT_ACCOUNT_ID\", jsonData.id);",
+                  "console.log(\"Saved CONNECT_ACCOUNT_ID = \" + jsonData.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Step 2: Create Customer (Rider)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": { "mode": "urlencoded","urlencoded": [{ "key": "email", "value": "joe@example.com" }, { "key": "name", "value": "Test Rider" }] },
+            "url": {
+              "raw": "https://api.stripe.com/v1/customers",
+              "protocol": "https",
+              "host": ["api","stripe","com"],
+              "path": ["v1","customers"]
+            },
+            "auth": { "type": "basic", "basic":[ { "key":"username","value":"{{STRIPE_SECRET_KEY}}" }, { "key":"password","value":"" } ] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let jsonData = pm.response.json();",
+                  "pm.environment.set(\"CUSTOMER_ID\", jsonData.id);",
+                  "console.log(\"Saved CUSTOMER_ID = \" + jsonData.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Step 3: Create Destination Charge ($20 Rider, $15 Driver)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "amount", "value": "2000" },
+                { "key": "currency", "value": "usd" },
+                { "key": "customer", "value": "{{CUSTOMER_ID}}" },
+                { "key": "payment_method", "value": "pm_card_visa" },
+                { "key": "confirm", "value": "true" },
+                { "key": "capture_method", "value": "automatic" },
+                { "key": "automatic_payment_methods[enabled]", "value": "true" },
+                { "key": "automatic_payment_methods[allow_redirects]", "value": "never" },
+                { "key": "transfer_data[destination]", "value": "{{CONNECT_ACCOUNT_ID}}" },
+                { "key": "transfer_data[amount]", "value": "1500" }
+              ]
+            },
+            "url": { "raw": "https://api.stripe.com/v1/payment_intents","protocol": "https","host": ["api","stripe","com"],"path": ["v1","payment_intents"] },
+            "auth": { "type": "basic", "basic":[ { "key":"username","value":"{{STRIPE_SECRET_KEY}}" }, { "key":"password","value":"" } ] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let jsonData = pm.response.json();",
+                  "pm.environment.set(\"PAYMENT_INTENT_ID\", jsonData.id);",
+                  "console.log(\"Saved PAYMENT_INTENT_ID = \" + jsonData.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Step 4: Verify PaymentIntent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "https://api.stripe.com/v1/payment_intents/{{PAYMENT_INTENT_ID}}","protocol":"https","host":["api","stripe","com"],"path":["v1","payment_intents","{{PAYMENT_INTENT_ID}}"] },
+            "auth": { "type": "basic", "basic":[ { "key":"username","value":"{{STRIPE_SECRET_KEY}}" }, { "key":"password","value":"" } ] }
+          }
+        },
+        {
+          "name": "Step 5: List Transfers to Driver",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "https://api.stripe.com/v1/transfers?destination={{CONNECT_ACCOUNT_ID}}","protocol":"https","host":["api","stripe","com"],"path":["v1","transfers"],"query":[ { "key":"destination","value":"{{CONNECT_ACCOUNT_ID}}" } ] },
+            "auth": { "type": "basic", "basic":[ { "key":"username","value":"{{STRIPE_SECRET_KEY}}" }, { "key":"password","value":"" } ] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "STRIPE_SECRET_KEY", "value": "sk_test_51SmlL1LtrEJP7Sr3sHXKuOghyh1szoEB9UULQi6HYhPu9x9MHkY7dVQTV0njNXNjKSfPLi90wfopTRfFq4akPXA200kiRFLrnR" },
+    { "key": "CONNECT_ACCOUNT_ID", "value": "" },
+    { "key": "CUSTOMER_ID", "value": "" },
+    { "key": "PAYMENT_INTENT_ID", "value": "" }
+  ]
+}
+
