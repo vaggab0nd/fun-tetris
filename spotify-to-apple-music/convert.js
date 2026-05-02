@@ -11,11 +11,14 @@
  *
  * Usage:
  *   node convert.js --input my_playlist.csv --name "My Playlist Name"
+ *   node convert.js --input my_playlist.csv --name "My Playlist Name" --enrich
  *
  * Options:
  *   --input   Path to the CSV file exported from exportify.net (required)
  *   --name    Playlist name to use in Apple Music (defaults to CSV filename)
  *   --batch   Path to a folder of CSVs; converts all of them, one output XML per file
+ *   --enrich  Look up each track on MusicBrainz and replace metadata with canonical values
+ *             to improve Apple Music matching. Adds ~1s per track due to rate limiting.
  */
 
 'use strict';
@@ -23,6 +26,7 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const https = require('https');
 
 // ── XML helpers ──────────────────────────────────────────────────────────────
 
@@ -147,17 +151,108 @@ ${playlistItems}
 `;
 }
 
+// ── MusicBrainz enrichment ───────────────────────────────────────────────────
+
+function mbGet(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, {
+      headers: { 'User-Agent': 'spotify-to-apple-music-converter/1.0 (github.com/vaggab0nd/fun-tetris)' },
+    }, res => {
+      let body = '';
+      res.on('data', chunk => { body += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(body)); }
+        catch (e) { reject(new Error('MusicBrainz returned invalid JSON')); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(8000, () => { req.destroy(); reject(new Error('MusicBrainz request timed out')); });
+  });
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function lookupMusicBrainz(trackName, artistName) {
+  const q = encodeURIComponent(`recording:"${trackName}" AND artist:"${artistName}"`);
+  const url = `https://musicbrainz.org/ws/2/recording/?query=${q}&fmt=json&limit=1`;
+
+  try {
+    const data = await mbGet(url);
+    const recording = data.recordings && data.recordings[0];
+    if (!recording || recording.score < 85) return null;
+
+    const canonicalTitle  = recording.title || trackName;
+    const canonicalArtist = recording['artist-credit'] && recording['artist-credit'][0]
+      ? recording['artist-credit'][0].name
+      : artistName;
+    // Prefer the earliest release (index 0 from MusicBrainz ordering)
+    const release = recording.releases && recording.releases[0];
+    const canonicalAlbum = release ? release.title : null;
+
+    return { title: canonicalTitle, artist: canonicalArtist, album: canonicalAlbum };
+  } catch {
+    return null;
+  }
+}
+
+async function enrichTracks(tracks) {
+  console.log(`Enriching ${tracks.length} tracks via MusicBrainz (1 req/sec)...`);
+  let matched = 0, unchanged = 0, failed = 0;
+
+  for (let i = 0; i < tracks.length; i++) {
+    const track = tracks[i];
+    const originalName   = track['Track Name'] || '';
+    const originalArtist = (track['Artist Name(s)'] || '').split(',')[0].trim();
+    const originalAlbum  = track['Album Name'] || '';
+
+    process.stdout.write(`  [${i + 1}/${tracks.length}] ${originalName} — `);
+
+    const result = await lookupMusicBrainz(originalName, originalArtist);
+
+    if (result) {
+      const changes = [];
+      if (result.title  !== originalName)   changes.push(`title: "${result.title}"`);
+      if (result.artist !== originalArtist) changes.push(`artist: "${result.artist}"`);
+      if (result.album  && result.album !== originalAlbum) changes.push(`album: "${result.album}"`);
+
+      if (changes.length > 0) {
+        track['Track Name']    = result.title;
+        track['Artist Name(s)'] = result.artist;
+        if (result.album) track['Album Name'] = result.album;
+        console.log(`updated (${changes.join(', ')})`);
+        matched++;
+      } else {
+        console.log('ok');
+        unchanged++;
+      }
+    } else {
+      console.log('no match, keeping original');
+      failed++;
+    }
+
+    // MusicBrainz rate limit: 1 request per second
+    if (i < tracks.length - 1) await sleep(1050);
+  }
+
+  console.log(`\nEnrichment complete: ${matched} updated, ${unchanged} already correct, ${failed} not found.\n`);
+  return tracks;
+}
+
 // ── Conversion ───────────────────────────────────────────────────────────────
 
-async function convertFile(inputPath, playlistName, outputPath) {
+async function convertFile(inputPath, playlistName, outputPath, enrich = false) {
   if (!fs.existsSync(inputPath)) {
     throw new Error(`Input file not found: ${inputPath}`);
   }
 
-  const tracks = await parseCsv(inputPath);
+  let tracks = await parseCsv(inputPath);
   if (tracks.length === 0) {
     throw new Error('No tracks found in CSV.');
   }
+
+  if (enrich) tracks = await enrichTracks(tracks);
 
   const xml = buildXml(playlistName, tracks);
   fs.writeFileSync(outputPath, xml, 'utf8');
@@ -200,7 +295,7 @@ async function main() {
       const name = path.basename(file, path.extname(file));
       const outputPath = path.join(dir, `${name}.xml`);
       try {
-        await convertFile(inputPath, name, outputPath);
+        await convertFile(inputPath, name, outputPath, !!args.enrich);
       } catch (err) {
         console.error(`Failed to convert ${file}: ${err.message}`);
       }
@@ -220,7 +315,7 @@ async function main() {
   const outputPath = path.resolve('output.xml');
 
   try {
-    await convertFile(inputPath, playlistName, outputPath);
+    await convertFile(inputPath, playlistName, outputPath, !!args.enrich);
   } catch (err) {
     console.error(`Error: ${err.message}`);
     process.exit(1);
