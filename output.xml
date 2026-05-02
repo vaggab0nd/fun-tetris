@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Major Version</key><integer>1</integer>
+  <key>Minor Version</key><integer>1</integer>
+  <key>Application Version</key><string>12.0</string>
+  <key>Tracks</key>
+  <dict>
+    <key>1</key>
+    <dict>
+      <key>Track ID</key><integer>1</integer>
+      <key>Name</key><string>Bohemian Rhapsody</string>
+      <key>Artist</key><string>Queen</string>
+      <key>Album</key><string>A Night at the Opera</string>
+      <key>Total Time</key><integer>354320</integer>
+      <key>Track Number</key><integer>1</integer>
+      <key>Disc Number</key><integer>1</integer>
+    </dict>
+    <key>2</key>
+    <dict>
+      <key>Track ID</key><integer>2</integer>
+      <key>Name</key><string>Hotel California</string>
+      <key>Artist</key><string>Eagles</string>
+      <key>Album</key><string>Hotel California</string>
+      <key>Total Time</key><integer>391000</integer>
+      <key>Track Number</key><integer>2</integer>
+      <key>Disc Number</key><integer>1</integer>
+    </dict>
+    <key>3</key>
+    <dict>
+      <key>Track ID</key><integer>3</integer>
+      <key>Name</key><string>Sweet Child O&apos; Mine</string>
+      <key>Artist</key><string>Guns N&apos; Roses</string>
+      <key>Album</key><string>Appetite for Destruction</string>
+      <key>Total Time</key><integer>356040</integer>
+      <key>Track Number</key><integer>14</integer>
+      <key>Disc Number</key><integer>1</integer>
+    </dict>
+    <key>4</key>
+    <dict>
+      <key>Track ID</key><integer>4</integer>
+      <key>Name</key><string>Smells Like Teen Spirit</string>
+      <key>Artist</key><string>Nirvana</string>
+      <key>Album</key><string>Nevermind</string>
+      <key>Total Time</key><integer>301000</integer>
+      <key>Track Number</key><integer>1</integer>
+      <key>Disc Number</key><integer>1</integer>
+    </dict>
+  </dict>
+  <key>Playlists</key>
+  <array>
+    <dict>
+      <key>Name</key><string>test_playlist</string>
+      <key>Playlist Items</key>
+      <array>
+        <dict><key>Track ID</key><integer>1</integer></dict>
+        <dict><key>Track ID</key><integer>2</integer></dict>
+        <dict><key>Track ID</key><integer>3</integer></dict>
+        <dict><key>Track ID</key><integer>4</integer></dict>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>
