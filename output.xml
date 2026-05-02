@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Major Version</key><integer>1</integer>
+  <key>Minor Version</key><integer>1</integer>
+  <key>Application Version</key><string>12.0</string>
+  <key>Tracks</key>
+  <dict>
+    <key>1</key>
+    <dict>
+      <key>Track ID</key><integer>1</integer>
+      <key>Name</key><string>Voodoo People</string>
+      <key>Artist</key><string>The Prodigy</string>
+      <key>Album</key><string>Music for the Jilted Generation</string>
+      <key>Total Time</key><integer>387000</integer>
+      <key>Track Number</key><integer>8</integer>
+      <key>Disc Number</key><integer>1</integer>
+    </dict>
+  </dict>
+  <key>Playlists</key>
+  <array>
+    <dict>
+      <key>Name</key><string>Test Enrich</string>
+      <key>Playlist Items</key>
+      <array>
+        <dict><key>Track ID</key><integer>1</integer></dict>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>
