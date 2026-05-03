@@ -17,8 +17,10 @@
  *   --input   Path to the CSV file exported from exportify.net (required)
  *   --name    Playlist name to use in Apple Music (defaults to CSV filename)
  *   --batch   Path to a folder of CSVs; converts all of them, one output XML per file
- *   --enrich  Look up each track on MusicBrainz and replace metadata with canonical values
- *             to improve Apple Music matching. Adds ~1s per track due to rate limiting.
+ *   --enrich    Look up each track on MusicBrainz and replace metadata with canonical values
+ *               to improve Apple Music matching. Adds ~1s per track due to rate limiting.
+ *   --no-album  Omit the Album field from the XML entirely. Apple Music then matches on
+ *               track name + artist only, which can significantly improve match rates.
  */
 
 'use strict';
@@ -94,7 +96,7 @@ async function parseCsv(filePath) {
 
 // ── XML builder ──────────────────────────────────────────────────────────────
 
-function buildTrackXml(track, id) {
+function buildTrackXml(track, id, includeAlbum = true) {
   const name      = xmlEscape(track['Track Name'] || '');
   const artists   = track['Artist Name(s)'] || '';
   const artist    = xmlEscape(artists.split(',')[0].trim());
@@ -107,16 +109,16 @@ function buildTrackXml(track, id) {
     <dict>
       <key>Track ID</key><integer>${id}</integer>
       <key>Name</key><string>${name}</string>
-      <key>Artist</key><string>${artist}</string>
-      <key>Album</key><string>${album}</string>
+      <key>Artist</key><string>${artist}</string>${includeAlbum ? `
+      <key>Album</key><string>${album}</string>` : ''}
       <key>Total Time</key><integer>${duration}</integer>
       <key>Track Number</key><integer>${trackNum}</integer>
       <key>Disc Number</key><integer>${discNum}</integer>
     </dict>`;
 }
 
-function buildXml(playlistName, tracks) {
-  const trackEntries = tracks.map((t, i) => buildTrackXml(t, i + 1)).join('\n');
+function buildXml(playlistName, tracks, includeAlbum = true) {
+  const trackEntries = tracks.map((t, i) => buildTrackXml(t, i + 1, includeAlbum)).join('\n');
 
   const playlistItems = tracks
     .map((_, i) =>
@@ -242,7 +244,7 @@ async function enrichTracks(tracks) {
 
 // ── Conversion ───────────────────────────────────────────────────────────────
 
-async function convertFile(inputPath, playlistName, outputPath, enrich = false) {
+async function convertFile(inputPath, playlistName, outputPath, enrich = false, includeAlbum = true) {
   if (!fs.existsSync(inputPath)) {
     throw new Error(`Input file not found: ${inputPath}`);
   }
@@ -254,9 +256,10 @@ async function convertFile(inputPath, playlistName, outputPath, enrich = false) 
 
   if (enrich) tracks = await enrichTracks(tracks);
 
-  const xml = buildXml(playlistName, tracks);
+  const xml = buildXml(playlistName, tracks, includeAlbum);
   fs.writeFileSync(outputPath, xml, 'utf8');
 
+  if (!includeAlbum) console.log('(Album field omitted — name + artist matching only)');
   console.log(`Converted ${tracks.length} tracks → ${outputPath}`);
 }
 
@@ -295,7 +298,7 @@ async function main() {
       const name = path.basename(file, path.extname(file));
       const outputPath = path.join(dir, `${name}.xml`);
       try {
-        await convertFile(inputPath, name, outputPath, !!args.enrich);
+        await convertFile(inputPath, name, outputPath, !!args.enrich, !args['no-album']);
       } catch (err) {
         console.error(`Failed to convert ${file}: ${err.message}`);
       }
@@ -315,7 +318,7 @@ async function main() {
   const outputPath = path.resolve('output.xml');
 
   try {
-    await convertFile(inputPath, playlistName, outputPath, !!args.enrich);
+    await convertFile(inputPath, playlistName, outputPath, !!args.enrich, !args['no-album']);
   } catch (err) {
     console.error(`Error: ${err.message}`);
     process.exit(1);
