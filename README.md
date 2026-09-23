@@ -26,6 +26,15 @@ A Rubik's cube page for speedcubers, built on [cubing.js](https://js.cubing.net/
 - **Notation trainer**: turn a 3D cube with R, U', F2... buttons, play "Name that move!",
   and watch algorithms like Sune and T-Perm in the playground.
 
+### 📚 Alg Trainer (`algorithms.html`)
+A separate page for learning last-layer algorithms, linked from Cube Lab's top menu:
+- **2-Look**: the 16-algorithm beginner route in 4 steps, with tips on how to recognise each case.
+- **OLL (57)** and **PLL (21)**: every case grouped by shape, with a picture, the algorithm,
+  and a 3D animation when you tap it. Each algorithm was checked with a cube simulator.
+- **Progress tracking**: mark cases Not started / Learning / Learned (saved in your browser),
+  with progress bars and filters.
+- **Drill**: shows a random case from any angle, lets you set it up on a real cube, then reveals the answer.
+
 Needs an internet connection for the 3D cube. Offline, the timer still works with simpler scrambles.
 
 ## Features

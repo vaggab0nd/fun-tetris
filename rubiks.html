@@ -48,9 +48,26 @@
             margin-bottom: 10px;
         }
 
-        a.back {
+        .site-nav {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .site-nav a {
             color: #764ba2;
             font-weight: bold;
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 20px;
+            border: 2px solid transparent;
+        }
+
+        .site-nav a:hover { border-color: #764ba2; }
+
+        .site-nav a.current {
+            background: #764ba2;
+            color: #fff;
         }
 
         .tabs {
@@ -257,7 +274,11 @@
     <div class="page">
         <header>
             <h1>🧊 Cube Lab</h1>
-            <a class="back" href="index.html">← Play Tetris</a>
+            <nav class="site-nav">
+                <a class="current" href="rubiks.html">⏱ Timer &amp; Notation</a>
+                <a href="algorithms.html">📚 Alg Trainer</a>
+                <a href="index.html">🎮 Tetris</a>
+            </nav>
         </header>
 
         <div class="warn" id="loadWarn">

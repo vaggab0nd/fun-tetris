@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alg Trainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: #222;
+        }
+
+        .page {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 1.8em;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 1.15em;
+            margin-bottom: 6px;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1em;
+            margin: 15px 0 8px;
+        }
+
+        .site-nav {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .site-nav a {
+            color: #764ba2;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 20px;
+            border: 2px solid transparent;
+        }
+
+        .site-nav a:hover { border-color: #764ba2; }
+
+        .site-nav a.current {
+            background: #764ba2;
+            color: #fff;
+        }
+
+        .intro { margin-bottom: 15px; }
+
+        /* Progress bars */
+        .progress {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .progress { grid-template-columns: 1fr; }
+        }
+
+        .prog {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        .prog .label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .bar {
+            height: 10px;
+            background: #e2e4f0;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            margin-top: 5px;
+        }
+
+        .bar .learned { background: #2f9e44; }
+        .bar .learning { background: #fab005; }
+
+        /* Tabs */
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .tabs { grid-template-columns: 1fr 1fr; }
+        }
+
+        .tab {
+            padding: 10px 4px;
+            border: 2px solid #667eea;
+            background: #fff;
+            color: #667eea;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: #fff;
+        }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        .card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            margin-bottom: 15px;
+        }
+
+        .step-num {
+            display: inline-block;
+            background: #764ba2;
+            color: #fff;
+            border-radius: 50%;
+            width: 1.6em;
+            height: 1.6em;
+            text-align: center;
+            line-height: 1.6em;
+            margin-right: 6px;
+        }
+
+        .tip { margin-bottom: 10px; line-height: 1.4; }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button, select {
+            font-family: inherit;
+            font-size: 0.95em;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 2px solid #667eea;
+            background: #fff;
+            color: #667eea;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover { background: #eef0ff; }
+
+        button.primary {
+            background: #667eea;
+            color: #fff;
+        }
+
+        label { font-weight: bold; }
+
+        /* Case cards */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .case {
+            background: #fff;
+            border: 2px solid #d0d4f0;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .case:hover { border-color: #667eea; }
+        .case[data-status="1"] { border-color: #fab005; }
+        .case[data-status="2"] { border-color: #2f9e44; }
+
+        .case .name { font-weight: bold; }
+
+        .case twisty-player {
+            width: 100%;
+            height: 120px;
+        }
+
+        .case .alg {
+            font-size: 0.78em;
+            line-height: 1.3;
+            flex: 1;
+        }
+
+        .badge {
+            font-size: 0.8em;
+            padding: 4px 6px;
+            border-radius: 12px;
+            border: 2px solid #adb5bd;
+            color: #495057;
+            background: #fff;
+        }
+
+        .badge[data-status="1"] { border-color: #fab005; background: #fff3bf; color: #7a5b00; }
+        .badge[data-status="2"] { border-color: #2f9e44; background: #d3f9d8; color: #1b5e20; }
+
+        /* Dialog */
+        dialog {
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            width: min(520px, calc(100vw - 20px));
+            margin: auto;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        dialog::backdrop { background: rgba(30, 30, 46, 0.6); }
+
+        dialog twisty-player {
+            width: 100%;
+            height: 280px;
+        }
+
+        .big-alg {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px 0;
+            word-spacing: 0.25em;
+            line-height: 1.5;
+        }
+
+        .setup { font-size: 0.85em; margin-bottom: 10px; }
+
+        .status-choice { display: flex; gap: 6px; flex-wrap: wrap; }
+        .status-choice button.on { background: #764ba2; border-color: #764ba2; color: #fff; }
+
+        .dialog-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Drill */
+        .drill-cube twisty-player {
+            width: 100%;
+            height: 300px;
+        }
+
+        .answer {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .score { font-weight: bold; }
+
+        .note { font-size: 0.85em; opacity: 0.75; margin-top: 8px; }
+
+        .warn {
+            display: none;
+            background: #fff3bf;
+            border: 2px solid #fab005;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>📚 Alg Trainer</h1>
+            <nav class="site-nav">
+                <a href="rubiks.html">⏱ Timer &amp; Notation</a>
+                <a class="current" href="algorithms.html">📚 Alg Trainer</a>
+                <a href="index.html">🎮 Tetris</a>
+            </nav>
+        </header>
+
+        <p class="intro">
+            Learn to solve the last layer like speedcubers do. Tap any case to watch it on a 3D cube,
+            then mark it <b>Learning</b> or <b>Learned</b>. Your progress is saved on this device.
+            In the pictures the top colour is <b>white</b>; it works exactly the same with yellow on top.
+        </p>
+
+        <div class="warn" id="loadWarn">
+            Couldn't load the cube pictures (are you offline?). The algorithms are still listed below.
+        </div>
+
+        <div class="progress" id="progress"></div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="twolook">🌱 2-Look</button>
+            <button class="tab" data-tab="oll">🟡 OLL (57)</button>
+            <button class="tab" data-tab="pll">🔄 PLL (21)</button>
+            <button class="tab" data-tab="drill">🎯 Drill</button>
+        </div>
+
+        <!-- ============ 2-LOOK ============ -->
+        <section class="panel active" id="panel-twolook">
+            <div class="card">
+                <h2>Start here: 2-Look Last Layer</h2>
+                <p class="tip">
+                    Full CFOP uses 78 algorithms for the last layer. Most cubers start with <b>2-Look</b>:
+                    only 16 algorithms, done in 4 steps. Learn these first, then move on to full OLL and PLL.
+                </p>
+            </div>
+            <div id="twolookSteps"></div>
+        </section>
+
+        <!-- ============ OLL ============ -->
+        <section class="panel" id="panel-oll">
+            <div class="card">
+                <h2>OLL: Orient the Last Layer</h2>
+                <p class="tip">
+                    One algorithm makes the whole top face one colour. The cases are grouped by the
+                    shape the top colour makes, which is how you recognise them.
+                </p>
+                <div class="row">
+                    <label for="ollFilter">Show</label>
+                    <select id="ollFilter" class="filter" data-set="oll">
+                        <option value="all">All cases</option>
+                        <option value="0">Not started</option>
+                        <option value="1">Learning</option>
+                        <option value="2">Learned</option>
+                    </select>
+                </div>
+            </div>
+            <div id="ollGroups"></div>
+        </section>
+
+        <!-- ============ PLL ============ -->
+        <section class="panel" id="panel-pll">
+            <div class="card">
+                <h2>PLL: Permute the Last Layer</h2>
+                <p class="tip">
+                    The top is already one colour; one algorithm moves every piece to the right spot.
+                    Look at the sides of the top layer to recognise the case, for example "headlights",
+                    which are two matching corners on one side.
+                </p>
+                <div class="row">
+                    <label for="pllFilter">Show</label>
+                    <select id="pllFilter" class="filter" data-set="pll">
+                        <option value="all">All cases</option>
+                        <option value="0">Not started</option>
+                        <option value="1">Learning</option>
+                        <option value="2">Learned</option>
+                    </select>
+                </div>
+            </div>
+            <div id="pllGroups"></div>
+        </section>
+
+        <!-- ============ DRILL ============ -->
+        <section class="panel" id="panel-drill">
+            <div class="card">
+                <h2>Drill: can you recognise it?</h2>
+                <p class="tip">
+                    You'll see a random case. Work out which one it is (and do it on your real cube if you like),
+                    then reveal the answer.
+                </p>
+                <div class="row">
+                    <label for="drillPool">Practise</label>
+                    <select id="drillPool">
+                        <option value="learning">Cases I'm learning</option>
+                        <option value="known">Learning + learned</option>
+                        <option value="twolook">2-Look set</option>
+                        <option value="oll">All OLL</option>
+                        <option value="pll">All PLL</option>
+                    </select>
+                    <span class="score">Score: <span id="drillScore">0 / 0</span></span>
+                </div>
+            </div>
+            <div class="card drill-cube">
+                <div id="drillEmpty" class="tip" style="display:none"></div>
+                <div id="drillArea">
+                    <twisty-player id="drillPlayer" puzzle="3x3x3" control-panel="none" background="none"></twisty-player>
+                    <p class="setup" id="drillSetup"></p>
+                    <div class="row">
+                        <button class="primary" id="drillReveal">Show answer</button>
+                        <button id="drillSkip">Skip</button>
+                    </div>
+                    <div class="answer" id="drillAnswer">
+                        <h2 id="drillName"></h2>
+                        <div class="big-alg" id="drillAlg"></div>
+                        <p class="note">Moves in (brackets) just turn the top layer to line the case up.</p>
+                        <div class="row">
+                            <button id="drillGot">✅ I knew it</button>
+                            <button id="drillMissed">❌ Not yet</button>
+                            <button id="drillReplay">Replay</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <dialog id="caseDialog">
+        <div class="dialog-head">
+            <h2 id="dlgName"></h2>
+            <button id="dlgClose" aria-label="Close">✕</button>
+        </div>
+        <p id="dlgGroup" class="note" style="margin-top:0"></p>
+        <twisty-player id="dlgPlayer" puzzle="3x3x3" background="none"
+            experimental-setup-anchor="end"></twisty-player>
+        <div class="big-alg" id="dlgAlg"></div>
+        <p class="setup" id="dlgSetup"></p>
+        <div class="status-choice" id="dlgStatus"></div>
+    </dialog>
+
+    <script type="module">
+        // Algorithms below were checked with a cube simulator: each one keeps the first two layers
+        // solved, and each case matches its standard number/name.
+
+        // ---------- Data ----------
+        const OLL_GROUPS = [
+            ["Cross (OCLL)", [21, 22, 23, 24, 25, 26, 27]],
+            ["Dot", [1, 2, 3, 4, 17, 18, 19, 20]],
+            ["Corners oriented", [28, 57]],
+            ["Line (I shape)", [51, 52, 55, 56]],
+            ["T shape", [33, 45]],
+            ["P shape", [31, 32, 43, 44]],
+            ["C shape", [34, 46]],
+            ["W shape", [36, 38]],
+            ["Square", [5, 6]],
+            ["Small L", [47, 48, 49, 50, 53, 54]],
+            ["Fish", [9, 10, 35, 37]],
+            ["Knight move", [13, 14, 15, 16]],
+            ["Small lightning bolt", [7, 8, 11, 12]],
+            ["Big lightning bolt", [39, 40]],
+            ["Awkward", [29, 30, 41, 42]],
+        ];
+
+        const OLL_ALGS = {
+            1: "R U2 R2 F R F' U2 R' F R F'",
+            2: "F R U R' U' F' f R U R' U' f'",
+            3: "f R U R' U' f' U' F R U R' U' F'",
+            4: "f R U R' U' f' U F R U R' U' F'",
+            5: "r' U2 R U R' U r",
+            6: "r U2 R' U' R U' r'",
+            7: "r U R' U R U2 r'",
+            8: "r' U' R U' R' U2 r",
+            9: "R U R' U' R' F R2 U R' U' F'",
+            10: "R U R' U R' F R F' R U2 R'",
+            11: "r U R' U R' F R F' R U2 r'",
+            12: "M' R' U' R U' R' U2 R U' R r'",
+            13: "F U R U' R2 F' R U R U' R'",
+            14: "R' F R U R' F' R F U' F'",
+            15: "r' U' r R' U' R U r' U r",
+            16: "r U r' R U R' U' r U' r'",
+            17: "R U R' U R' F R F' U2 R' F R F'",
+            18: "r U R' U R U2 r2 U' R U' R' U2 r",
+            19: "M U R U R' U' M' R' F R F'",
+            20: "r U R' U' M2 U R U' R' U' M'",
+            21: "R U2 R' U' R U R' U' R U' R'",
+            22: "R U2 R2 U' R2 U' R2 U2 R",
+            23: "R2 D' R U2 R' D R U2 R",
+            24: "r U R' U' r' F R F'",
+            25: "F' r U R' U' r' F R",
+            26: "R U2 R' U' R U' R'",
+            27: "R U R' U R U2 R'",
+            28: "r U R' U' M U R U' R'",
+            29: "R U R' U' R U' R' F' U' F R U R'",
+            30: "F R' F R2 U' R' U' R U R' F2",
+            31: "R' U' F U R U' R' F' R",
+            32: "L U F' U' L' U L F L'",
+            33: "R U R' U' R' F R F'",
+            34: "R U R2 U' R' F R U R U' F'",
+            35: "R U2 R2 F R F' R U2 R'",
+            36: "L' U' L U' L' U L U L F' L' F",
+            37: "F R' F' R U R U' R'",
+            38: "R U R' U R U' R' U' R' F R F'",
+            39: "L F' L' U' L U F U' L'",
+            40: "R' F R U R' U' F' U R",
+            41: "R U R' U R U2 R' F R U R' U' F'",
+            42: "R' U' R U' R' U2 R F R U R' U' F'",
+            43: "R' U' F' U F R",
+            44: "f R U R' U' f'",
+            45: "F R U R' U' F'",
+            46: "R' U' R' F R F' U R",
+            47: "R' U' R' F R F' R' F R F' U R",
+            48: "F R U R' U' R U R' U' F'",
+            49: "r U' r2 U r2 U r2 U' r",
+            50: "r' U r2 U' r2 U' r2 U r'",
+            51: "F U R U' R' U R U' R' F'",
+            52: "R U R' U R U' B U' B' R'",
+            53: "r' U' R U' R' U R U' R' U2 r",
+            54: "r U R' U R U' R' U R U2 r'",
+            55: "R' F R U R U' R2 F' R2 U' R' U R U R'",
+            56: "r' U' r U' R' U R U' R' U R r' U r",
+            57: "R U R' U' M' U R U' r'",
+        };
+
+        // Nicknames for the cases most people learn first.
+        const OLL_NICKNAMES = {
+            21: "H", 22: "Pi", 23: "Headlights", 24: "Chameleon", 25: "Bowtie", 26: "Anti-Sune", 27: "Sune",
+            33: "T shape", 45: "T shape", 57: "H (corners oriented)",
+        };
+
+        const PLL_GROUPS = [
+            ["Edges only", ["Ua", "Ub", "H", "Z"]],
+            ["Corners only", ["Aa", "Ab", "E"]],
+            ["Adjacent corner swap", ["T", "F", "Ja", "Jb", "Ra", "Rb"]],
+            ["G perms", ["Ga", "Gb", "Gc", "Gd"]],
+            ["Diagonal corner swap", ["V", "Y", "Na", "Nb"]],
+        ];
+
+        const PLL_ALGS = {
+            Aa: "x R' U R' D2 R U' R' D2 R2 x'",
+            Ab: "x R2 D2 R U R' D2 R U' R x'",
+            E: "x' R U' R' D R U R' D' R U R' D R U' R' D' x",
+            F: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R",
+            Ga: "R2 U R' U R' U' R U' R2 U' D R' U R D'",
+            Gb: "R' U' R U D' R2 U R' U R U' R U' R2 D",
+            Gc: "R2 U' R U' R U R' U R2 U D' R U' R' D",
+            Gd: "R U R' U' D R2 U' R U' R' U R' U R2 D'",
+            H: "M2 U M2 U2 M2 U M2",
+            Ja: "R' U L' U2 R U' R' U2 R L",
+            Jb: "R U R' F' R U R' U' R' F R2 U' R'",
+            Na: "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'",
+            Nb: "R' U R U' R' F' U' F R U R' F R' F' R U' R",
+            Ra: "R U' R' U' R U R D R' U' R D' R' U2 R'",
+            Rb: "R2 F R U R U' R' F' R U2 R' U2 R",
+            T: "R U R' U' R' F R2 U' R' U' R U R' F'",
+            Ua: "M2 U M U2 M' U M2",
+            Ub: "M2 U' M U2 M' U' M2",
+            V: "R U' R U R' D R D' R U' D R2 U R2 D' R2",
+            Y: "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+            Z: "M' U M2 U M2 U M' U2 M2",
+        };
+
+        // Every case, keyed by id. Status is shared wherever a case appears (e.g. T-Perm in 2-Look and PLL).
+        const CASES = {};
+        for (const [group, nums] of OLL_GROUPS) {
+            for (const n of nums) {
+                CASES["oll-" + n] = {
+                    id: "oll-" + n,
+                    set: "oll",
+                    name: `OLL ${n}` + (OLL_NICKNAMES[n] ? ` · ${OLL_NICKNAMES[n]}` : ""),
+                    group,
+                    alg: OLL_ALGS[n],
+                    stickering: "OLL",
+                };
+            }
+        }
+        for (const [group, names] of PLL_GROUPS) {
+            for (const n of names) {
+                CASES["pll-" + n] = {
+                    id: "pll-" + n,
+                    set: "pll",
+                    name: `${n}-Perm`,
+                    group,
+                    alg: PLL_ALGS[n],
+                    stickering: "PLL",
+                };
+            }
+        }
+        // 2-Look OLL step 1: make the cross (edges only).
+        const EO_CASES = [
+            ["eo-line", "Line", "F R U R' U' F'"],
+            ["eo-l", "L shape", "F U R U' R' F'"],
+            ["eo-dot", "Dot", "F R U R' U' F' f R U R' U' f'"],
+        ];
+        for (const [id, name, alg] of EO_CASES) {
+            CASES[id] = { id, set: "twolook", name, group: "2-Look OLL: cross", alg, stickering: "EOLL" };
+        }
+
+        const TWO_LOOK_STEPS = [
+            {
+                title: "Make the top cross",
+                tip: "Look at the top edges only (ignore the corners). Hold a <b>line</b> left-to-right, " +
+                    "and hold an <b>L shape</b> in the back-left. A <b>dot</b> (no edges) uses both moves in a row.",
+                ids: ["eo-line", "eo-l", "eo-dot"],
+                stickering: "EOLL",
+            },
+            {
+                title: "Make the whole top one colour",
+                tip: "Now you have a cross. Twist the corners with one of these 7. Start with " +
+                    "<b>Sune</b> and <b>Anti-Sune</b>: they're used the most.",
+                ids: [27, 26, 21, 22, 23, 24, 25].map((n) => "oll-" + n),
+                stickering: "OCLL",
+            },
+            {
+                title: "Put the corners in place",
+                tip: "Look for <b>headlights</b>: two corners on one side with the same colour. " +
+                    "Hold them on the <b>left</b> and do T-Perm. No headlights anywhere? Do Y-Perm.",
+                ids: ["pll-T", "pll-Y"],
+                stickering: "PLL",
+            },
+            {
+                title: "Put the edges in place",
+                tip: "Corners are done, so only edges move. If one side is fully solved, hold it at the " +
+                    "<b>back</b> and do Ua or Ub. No side solved? It's H (opposite swaps) or Z (next-door swaps).",
+                ids: ["pll-Ua", "pll-Ub", "pll-H", "pll-Z"],
+                stickering: "PLL",
+            },
+        ];
+        const TWO_LOOK_IDS = TWO_LOOK_STEPS.flatMap((s) => s.ids);
+
+        // ---------- Status (0 = not started, 1 = learning, 2 = learned) ----------
+        const STATUS_KEY = "cubeLabAlgStatus";
+        const STATUS_LABELS = ["Not started", "Learning", "Learned ✓"];
+        let status = {};
+        try {
+            status = JSON.parse(localStorage.getItem(STATUS_KEY)) || {};
+        } catch {
+            status = {};
+        }
+
+        const getStatus = (id) => status[id] || 0;
+
+        function setStatus(id, value) {
+            status[id] = value;
+            try {
+                localStorage.setItem(STATUS_KEY, JSON.stringify(status));
+            } catch {
+                // Storage unavailable - progress just won't persist.
+            }
+            document.querySelectorAll(`[data-id="${id}"]`).forEach((el) => {
+                el.dataset.status = value;
+                const badge = el.querySelector(".badge");
+                if (badge) {
+                    badge.dataset.status = value;
+                    badge.textContent = STATUS_LABELS[value];
+                }
+            });
+            renderProgress();
+            applyFilters();
+        }
+
+        // ---------- Load cubing.js ----------
+        const $ = (id) => document.getElementById(id);
+        let Alg = null;
+        try {
+            const [algMod] = await Promise.all([
+                import("https://cdn.cubing.net/v0/js/cubing/alg"),
+                import("https://cdn.cubing.net/v0/js/cubing/twisty"), // registers <twisty-player>
+            ]);
+            Alg = algMod.Alg;
+        } catch (err) {
+            console.error("cubing.js failed to load", err);
+            $("loadWarn").style.display = "block";
+        }
+
+        const invert = (alg) => Alg.fromString(alg).invert().toString();
+
+        // Merge neighbouring U turns, e.g. "U U2" -> "U'".
+        function tidy(alg) {
+            try {
+                return Alg.fromString(alg).experimentalSimplify({
+                    cancel: { directional: "any-direction", puzzleSpecificModWrap: "canonical-centered" },
+                    puzzleSpecificSimplifyOptions: { quantumMoveOrder: () => 4 },
+                }).toString();
+            } catch {
+                return alg.trim();
+            }
+        }
+
+        // ---------- Progress bars ----------
+        const PROGRESS_SETS = [
+            ["🌱 2-Look", TWO_LOOK_IDS],
+            ["🟡 OLL", Object.keys(CASES).filter((id) => CASES[id].set === "oll")],
+            ["🔄 PLL", Object.keys(CASES).filter((id) => CASES[id].set === "pll")],
+        ];
+
+        function renderProgress() {
+            const box = $("progress");
+            box.innerHTML = "";
+            for (const [label, ids] of PROGRESS_SETS) {
+                const learned = ids.filter((id) => getStatus(id) === 2).length;
+                const learning = ids.filter((id) => getStatus(id) === 1).length;
+                const el = document.createElement("div");
+                el.className = "prog";
+                el.innerHTML = `
+                    <div class="label"><span>${label}</span><span>${learned} / ${ids.length} learned</span></div>
+                    <div class="bar">
+                        <div class="learned" style="width:${(learned / ids.length) * 100}%"></div>
+                        <div class="learning" style="width:${(learning / ids.length) * 100}%"></div>
+                    </div>`;
+                el.title = `${learning} learning`;
+                box.append(el);
+            }
+        }
+
+        // ---------- Case cards ----------
+        function makePreview(c, stickering) {
+            const player = document.createElement("twisty-player");
+            player.setAttribute("puzzle", "3x3x3");
+            player.setAttribute("visualization", "experimental-2D-LL");
+            player.setAttribute("experimental-stickering", stickering || c.stickering);
+            player.setAttribute("experimental-setup-anchor", "end");
+            player.setAttribute("control-panel", "none");
+            player.setAttribute("background", "none");
+            player.setAttribute("alg", c.alg);
+            return player;
+        }
+
+        function makeCard(id, stickering) {
+            const c = CASES[id];
+            const card = document.createElement("div");
+            card.className = "case";
+            card.dataset.id = id;
+            card.dataset.status = getStatus(id);
+
+            const name = document.createElement("div");
+            name.className = "name";
+            name.textContent = c.name;
+            card.append(name);
+
+            if (Alg) card.append(makePreview(c, stickering));
+
+            const alg = document.createElement("div");
+            alg.className = "alg";
+            alg.textContent = c.alg;
+            card.append(alg);
+
+            const badge = document.createElement("button");
+            badge.className = "badge";
+            badge.dataset.status = getStatus(id);
+            badge.textContent = STATUS_LABELS[getStatus(id)];
+            badge.title = "Tap to change";
+            badge.addEventListener("click", (e) => {
+                e.stopPropagation();
+                setStatus(id, (getStatus(id) + 1) % 3);
+            });
+            card.append(badge);
+
+            card.addEventListener("click", () => openCase(id, stickering));
+            return card;
+        }
+
+        function renderTwoLook() {
+            const box = $("twolookSteps");
+            TWO_LOOK_STEPS.forEach((step, i) => {
+                const section = document.createElement("div");
+                section.className = "card";
+                section.innerHTML = `<h2><span class="step-num">${i + 1}</span>${step.title}</h2>
+                    <p class="tip">${step.tip}</p>`;
+                const grid = document.createElement("div");
+                grid.className = "grid";
+                for (const id of step.ids) grid.append(makeCard(id, step.stickering));
+                section.append(grid);
+                box.append(section);
+            });
+        }
+
+        function renderGroups(set, groups, boxId) {
+            const box = $(boxId);
+            for (const [group, keys] of groups) {
+                const section = document.createElement("div");
+                section.className = "group";
+                const h = document.createElement("h3");
+                h.textContent = `${group} (${keys.length})`;
+                const grid = document.createElement("div");
+                grid.className = "grid";
+                for (const key of keys) grid.append(makeCard(`${set}-${key}`));
+                section.append(h, grid);
+                box.append(section);
+            }
+        }
+
+        function applyFilters() {
+            document.querySelectorAll(".filter").forEach((select) => {
+                const panel = $("panel-" + select.dataset.set);
+                panel.querySelectorAll(".case").forEach((card) => {
+                    card.style.display = select.value === "all" || card.dataset.status === select.value ? "" : "none";
+                });
+                panel.querySelectorAll(".group").forEach((group) => {
+                    const visible = [...group.querySelectorAll(".case")].some((c) => c.style.display !== "none");
+                    group.style.display = visible ? "" : "none";
+                });
+            });
+        }
+
+        document.querySelectorAll(".filter").forEach((s) => s.addEventListener("change", applyFilters));
+
+        // ---------- Case dialog ----------
+        const dialog = $("caseDialog");
+        const dlgPlayer = $("dlgPlayer");
+        let dlgId = null;
+
+        function openCase(id, stickering) {
+            const c = CASES[id];
+            dlgId = id;
+            $("dlgName").textContent = c.name;
+            $("dlgGroup").textContent = c.group;
+            $("dlgAlg").textContent = c.alg;
+            $("dlgSetup").textContent = Alg
+                ? `Set it up on a real cube: start solved, then do ${tidy(invert(c.alg))}`
+                : "";
+            if (Alg) {
+                dlgPlayer.experimentalStickering = stickering || c.stickering;
+                dlgPlayer.alg = c.alg;
+                dlgPlayer.jumpToStart();
+            }
+            renderDialogStatus();
+            dialog.showModal();
+            if (Alg) setTimeout(() => dlgPlayer.play(), 500);
+        }
+
+        function renderDialogStatus() {
+            const box = $("dlgStatus");
+            box.innerHTML = "";
+            STATUS_LABELS.forEach((label, value) => {
+                const btn = document.createElement("button");
+                btn.textContent = label;
+                btn.classList.toggle("on", getStatus(dlgId) === value);
+                btn.addEventListener("click", () => {
+                    setStatus(dlgId, value);
+                    renderDialogStatus();
+                });
+                box.append(btn);
+            });
+        }
+
+        $("dlgClose").addEventListener("click", () => dialog.close());
+        dialog.addEventListener("click", (e) => {
+            if (e.target === dialog) dialog.close(); // click on the backdrop
+        });
+        dialog.addEventListener("close", () => {
+            if (Alg) dlgPlayer.pause();
+        });
+
+        // ---------- Drill ----------
+        const drillPlayer = $("drillPlayer");
+        const AUFS = ["", "U", "U2", "U'"];
+        let drill = null;
+        let drillRight = 0;
+        let drillTotal = 0;
+
+        function drillPool() {
+            const pool = $("drillPool").value;
+            const all = Object.keys(CASES).filter((id) => CASES[id].set !== "twolook");
+            if (pool === "learning") return [...all, ...TWO_LOOK_IDS].filter((id) => getStatus(id) === 1);
+            if (pool === "known") return [...all, ...TWO_LOOK_IDS].filter((id) => getStatus(id) > 0);
+            if (pool === "twolook") return TWO_LOOK_IDS;
+            return all.filter((id) => CASES[id].set === pool);
+        }
+
+        function nextDrill() {
+            const pool = [...new Set(drillPool())];
+            $("drillAnswer").style.display = "none";
+            $("drillReveal").style.display = "";
+            if (!Alg || pool.length === 0) {
+                $("drillArea").style.display = "none";
+                $("drillEmpty").style.display = "block";
+                $("drillEmpty").textContent = !Alg
+                    ? "The drill needs the cube pictures, which couldn't load."
+                    : "Nothing here yet! Mark some cases as Learning (tap the badge on a card), " +
+                      "or pick a different set above.";
+                return;
+            }
+            $("drillArea").style.display = "";
+            $("drillEmpty").style.display = "none";
+
+            let id = pool[Math.floor(Math.random() * pool.length)];
+            if (pool.length > 1 && drill && id === drill.id) {
+                id = pool[(pool.indexOf(id) + 1) % pool.length]; // avoid the same case twice in a row
+            }
+            const c = CASES[id];
+            // Random U turns before and after, so the case shows up from any angle.
+            const pre = AUFS[Math.floor(Math.random() * 4)];
+            const post = AUFS[Math.floor(Math.random() * 4)];
+            const setup = tidy(`${pre} ${invert(c.alg)} ${post}`);
+            const solution = { before: post ? tidy(invert(post)) : "", after: pre ? tidy(invert(pre)) : "" };
+            drill = { id, setup, solution };
+
+            const stickering = TWO_LOOK_IDS.includes(id) && $("drillPool").value === "twolook"
+                ? TWO_LOOK_STEPS.find((s) => s.ids.includes(id)).stickering
+                : c.stickering;
+            drillPlayer.experimentalStickering = stickering;
+            drillPlayer.experimentalSetupAlg = setup;
+            drillPlayer.alg = "";
+            $("drillSetup").textContent = `Real cube? Start solved, then do: ${setup}`;
+        }
+
+        function revealDrill() {
+            const c = CASES[drill.id];
+            const { before, after } = drill.solution;
+            $("drillName").textContent = c.name;
+            let text = c.alg;
+            if (before) text = `(${before}) ${text}`;
+            if (after) text = `${text} (${after})`;
+            $("drillAlg").textContent = text;
+            $("drillAnswer").style.display = "block";
+            $("drillReveal").style.display = "none";
+            drillPlayer.alg = `${before} ${c.alg} ${after}`.trim();
+            drillPlayer.jumpToStart();
+            setTimeout(() => drillPlayer.play(), 300);
+        }
+
+        function scoreDrill(knewIt) {
+            drillTotal++;
+            if (knewIt) drillRight++;
+            $("drillScore").textContent = `${drillRight} / ${drillTotal}`;
+            nextDrill();
+        }
+
+        $("drillReveal").addEventListener("click", revealDrill);
+        $("drillSkip").addEventListener("click", nextDrill);
+        $("drillGot").addEventListener("click", () => scoreDrill(true));
+        $("drillMissed").addEventListener("click", () => scoreDrill(false));
+        $("drillReplay").addEventListener("click", () => {
+            drillPlayer.jumpToStart();
+            setTimeout(() => drillPlayer.play(), 300);
+        });
+        $("drillPool").addEventListener("change", nextDrill);
+
+        // ---------- Tabs ----------
+        document.querySelectorAll(".tab").forEach((tab) => {
+            tab.addEventListener("click", () => {
+                document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === tab));
+                document.querySelectorAll(".panel").forEach((p) =>
+                    p.classList.toggle("active", p.id === "panel-" + tab.dataset.tab));
+                if (tab.dataset.tab === "drill") nextDrill();
+            });
+        });
+
+        // ---------- Start ----------
+        renderProgress();
+        renderTwoLook();
+        renderGroups("oll", OLL_GROUPS, "ollGroups");
+        renderGroups("pll", PLL_GROUPS, "pllGroups");
+    </script>
+</body>
+</html>
