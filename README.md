@@ -17,6 +17,17 @@ A lightweight Tetris implementation available in two versions - terminal-based P
 - Perfect for playing on your phone
 - Single HTML file - just open and play!
 
+### 🧊 Cube Lab (`rubiks.html`)
+A Rubik's cube page for speedcubers, built on [cubing.js](https://js.cubing.net/cubing/):
+- **Competition timer**: official WCA-style random scrambles (3x3, 2x2, 4x4, Pyraminx, Skewb),
+  15-second inspection with automatic +2/DNF, hold-to-start (space bar or touch), and
+  ao5 / ao12 / best averages calculated the WCA way. Solves are saved in your browser.
+- **Scramble preview**: see the scrambled puzzle in 2D or 3D so you can check your scramble.
+- **Notation trainer**: turn a 3D cube with R, U', F2... buttons, play "Name that move!",
+  and watch algorithms like Sune and T-Perm in the playground.
+
+Needs an internet connection for the 3D cube. Offline, the timer still works with simpler scrambles.
+
 ## Features
 
 - Classic Tetris gameplay with all 7 tetromino pieces (I, O, T, S, Z, J, L)

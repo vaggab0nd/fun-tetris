@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cube Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: #222;
+        }
+
+        .page {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 1.8em;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        a.back {
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #667eea;
+            background: #fff;
+            color: #667eea;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: #fff;
+        }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        .card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            margin-bottom: 15px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 700px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        button, select, input[type=text] {
+            font-family: inherit;
+            font-size: 0.95em;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 2px solid #667eea;
+            background: #fff;
+            color: #333;
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        button:hover { background: #eef0ff; }
+
+        button.primary {
+            background: #667eea;
+            color: #fff;
+        }
+
+        input[type=text] { flex: 1; min-width: 0; }
+
+        label { font-weight: bold; }
+
+        .scramble {
+            font-size: 1.25em;
+            font-weight: bold;
+            line-height: 1.5;
+            word-spacing: 0.3em;
+            margin: 10px 0;
+            min-height: 1.5em;
+        }
+
+        twisty-player {
+            width: 100%;
+            height: 260px;
+        }
+
+        /* Timer */
+        .timer {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            text-align: center;
+            padding: 30px 10px;
+            border-radius: 12px;
+            background: #1e1e2e;
+            color: #fff;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .timer .time {
+            font-size: 4em;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer .hint {
+            opacity: 0.7;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+
+        .timer.holding .time { color: #ff6b6b; }
+        .timer.ready .time { color: #51cf66; }
+        .timer.inspecting .time { color: #ffd43b; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 15px;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .stat span:last-child { color: #764ba2; }
+
+        .solves {
+            max-height: 260px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .solve {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .solve .n { width: 2.5em; opacity: 0.6; }
+        .solve .t { flex: 1; font-weight: bold; }
+        .solve button { padding: 2px 6px; font-size: 0.8em; }
+        .solve button.on { background: #764ba2; color: #fff; border-color: #764ba2; }
+
+        /* Notation */
+        .moves {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+        }
+
+        .moves button { padding: 10px 0; font-size: 1.05em; }
+
+        .faces dt { font-weight: bold; color: #764ba2; float: left; width: 2.5em; }
+        .faces dd { margin-bottom: 4px; }
+
+        .history {
+            margin-top: 10px;
+            min-height: 1.5em;
+            font-weight: bold;
+            word-spacing: 0.3em;
+        }
+
+        .choices {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .choices button { padding: 12px 0; font-size: 1.2em; }
+        .choices button.right { background: #51cf66; border-color: #51cf66; color: #fff; }
+        .choices button.wrong { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
+
+        .feedback { margin-top: 8px; font-weight: bold; min-height: 1.3em; }
+
+        .note { font-size: 0.85em; opacity: 0.75; margin-top: 8px; }
+
+        .warn {
+            display: none;
+            background: #fff3bf;
+            border: 2px solid #fab005;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>🧊 Cube Lab</h1>
+            <a class="back" href="index.html">← Play Tetris</a>
+        </header>
+
+        <div class="warn" id="loadWarn">
+            Couldn't load the 3D cube library (are you offline?). The timer still works, using simpler scrambles.
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="timer">⏱ Timer</button>
+            <button class="tab" data-tab="notation">🔤 Notation</button>
+        </div>
+
+        <!-- ============ TIMER ============ -->
+        <section class="panel active" id="panel-timer">
+            <div class="card">
+                <div class="row">
+                    <label for="event">Event</label>
+                    <select id="event">
+                        <option value="333">3x3</option>
+                        <option value="222">2x2</option>
+                        <option value="444">4x4</option>
+                        <option value="pyram">Pyraminx</option>
+                        <option value="skewb">Skewb</option>
+                    </select>
+                    <label><input type="checkbox" id="inspectToggle" checked> 15s inspection</label>
+                    <button id="newScramble">New scramble</button>
+                </div>
+                <div class="scramble" id="scramble">Generating scramble…</div>
+            </div>
+
+            <div class="timer" id="timer">
+                <div class="time" id="time">0.00</div>
+                <div class="hint" id="timerHint">Hold SPACE (or hold here) until green, then let go</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Scrambled puzzle</h2>
+                    <twisty-player id="scramblePlayer" puzzle="3x3x3" visualization="2D"
+                        control-panel="none" background="none"></twisty-player>
+                    <div class="row">
+                        <button id="viewToggle">Show 3D</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Stats</h2>
+                    <div class="stats">
+                        <div class="stat"><span>Solves</span><span id="sCount">0</span></div>
+                        <div class="stat"><span>Mean</span><span id="sMean">-</span></div>
+                        <div class="stat"><span>Best</span><span id="sBest">-</span></div>
+                        <div class="stat"><span>Best ao5</span><span id="sBestAo5">-</span></div>
+                        <div class="stat"><span>ao5</span><span id="sAo5">-</span></div>
+                        <div class="stat"><span>ao12</span><span id="sAo12">-</span></div>
+                    </div>
+                    <div class="solves" id="solves"></div>
+                    <div class="row" style="margin-top:10px">
+                        <button id="clearSolves">Clear session</button>
+                    </div>
+                    <p class="note">
+                        ao5 = average of 5: drop the best and worst, average the middle 3 — just like at a WCA competition.
+                        More than one DNF makes the average a DNF.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ NOTATION ============ -->
+        <section class="panel" id="panel-notation">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Try the moves</h2>
+                    <twisty-player id="notationPlayer" puzzle="3x3x3" control-panel="none"
+                        background="none"></twisty-player>
+                    <div class="moves" id="moveButtons"></div>
+                    <div class="history" id="history"></div>
+                    <div class="row" style="margin-top:8px">
+                        <button id="resetCube">Reset cube</button>
+                    </div>
+                    <p class="note">Tip: drag the cube to spin it around and see the back.</p>
+                </div>
+                <div class="card">
+                    <h2>How to read it</h2>
+                    <dl class="faces">
+                        <dt>R</dt><dd>Right face</dd>
+                        <dt>L</dt><dd>Left face</dd>
+                        <dt>U</dt><dd>Up (top) face</dd>
+                        <dt>D</dt><dd>Down (bottom) face</dd>
+                        <dt>F</dt><dd>Front face (facing you)</dd>
+                        <dt>B</dt><dd>Back face</dd>
+                    </dl>
+                    <p style="margin-top:10px">
+                        A letter alone = turn that face <b>clockwise</b>, as if you were looking straight at it.<br>
+                        <b>'</b> (say "prime") = counter-clockwise. <b>R'</b> undoes <b>R</b>.<br>
+                        <b>2</b> = half turn. <b>R2</b> is the same as <b>R R</b>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Name that move!</h2>
+                    <twisty-player id="quizPlayer" puzzle="3x3x3" control-panel="none"
+                        background="none" tempo-scale="0.6"></twisty-player>
+                    <div class="row">
+                        <select id="quizLevel">
+                            <option value="easy">Easy: R, U, F</option>
+                            <option value="hard">Hard: all faces</option>
+                        </select>
+                        <button id="quizReplay">Replay</button>
+                        <span>Streak: <b id="streak">0</b> (best <b id="bestStreak">0</b>)</span>
+                    </div>
+                    <div class="choices" id="choices"></div>
+                    <div class="feedback" id="feedback"></div>
+                </div>
+                <div class="card">
+                    <h2>Algorithm playground</h2>
+                    <div class="row">
+                        <input type="text" id="algInput" value="R U R' U'" aria-label="Algorithm">
+                        <button class="primary" id="algPlay">Play</button>
+                    </div>
+                    <div class="row" style="margin-top:8px" id="presets"></div>
+                    <twisty-player id="algPlayer" puzzle="3x3x3" background="none"
+                        style="margin-top:10px"></twisty-player>
+                    <div class="feedback" id="algFeedback"></div>
+                    <p class="note">
+                        Challenge: how many times do you have to do <b>R U R' U'</b> before the cube is solved again?
+                        Type it in a few times and find out!
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        // cubing.js (https://js.cubing.net/cubing/) gives us the 3D cube and official WCA-style
+        // random-state scrambles. If it fails to load, we fall back to simple random-move scrambles.
+        const CUBING = "https://cdn.cubing.net/v0/js/cubing/";
+        let randomScrambleForEvent = null;
+        let Alg = null;
+        try {
+            const [scrambleMod, algMod] = await Promise.all([
+                import(CUBING + "scramble"),
+                import(CUBING + "alg"),
+                import(CUBING + "twisty"), // registers <twisty-player>
+            ]);
+            randomScrambleForEvent = scrambleMod.randomScrambleForEvent;
+            Alg = algMod.Alg;
+        } catch (err) {
+            console.error("cubing.js failed to load", err);
+            document.getElementById("loadWarn").style.display = "block";
+        }
+
+        const $ = (id) => document.getElementById(id);
+
+        // ---------- Tabs ----------
+        document.querySelectorAll(".tab").forEach((tab) => {
+            tab.addEventListener("click", () => {
+                document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === tab));
+                document.querySelectorAll(".panel").forEach((p) =>
+                    p.classList.toggle("active", p.id === "panel-" + tab.dataset.tab));
+            });
+        });
+
+        // ---------- Scrambles ----------
+        const EVENTS = {
+            "333": { puzzle: "3x3x3", faces: ["R", "L", "U", "D", "F", "B"], length: 20 },
+            "222": { puzzle: "2x2x2", faces: ["R", "U", "F"], length: 10 },
+            "444": { puzzle: "4x4x4", faces: ["R", "L", "U", "D", "F", "B", "Rw", "Uw", "Fw"], length: 40 },
+            "pyram": { puzzle: "pyraminx", faces: ["R", "L", "U", "B"], length: 10 },
+            "skewb": { puzzle: "skewb", faces: ["R", "L", "U", "B"], length: 10 },
+        };
+
+        // Opposite faces on a cube (turning R then L then R again is wasteful).
+        const AXIS = { R: "x", L: "x", Rw: "x", U: "y", D: "y", Uw: "y", F: "z", B: "z", Fw: "z" };
+
+        function fallbackScramble(eventId) {
+            const { faces, length } = EVENTS[eventId];
+            const cube = /^\d{3}$/.test(eventId); // 222, 333, 444
+            const suffixes = cube ? ["", "'", "2"] : ["", "'"];
+            const moves = [];
+            let lastFace = null;
+            let lastAxis = null;
+            let axisCount = 0;
+            while (moves.length < length) {
+                const face = faces[Math.floor(Math.random() * faces.length)];
+                if (face === lastFace) continue;
+                const axis = cube ? AXIS[face] : face;
+                if (axis === lastAxis && axisCount >= 2) continue;
+                axisCount = axis === lastAxis ? axisCount + 1 : 1;
+                lastAxis = axis;
+                lastFace = face;
+                moves.push(face + suffixes[Math.floor(Math.random() * suffixes.length)]);
+            }
+            return moves.join(" ");
+        }
+
+        let currentScramble = "";
+        let scrambleRequest = 0;
+
+        async function newScramble() {
+            const eventId = $("event").value;
+            const request = ++scrambleRequest;
+            $("scramble").textContent = "Generating scramble…";
+            let scramble;
+            try {
+                scramble = randomScrambleForEvent
+                    ? (await randomScrambleForEvent(eventId)).toString()
+                    : fallbackScramble(eventId);
+            } catch (err) {
+                console.error("Scramble generation failed", err);
+                scramble = fallbackScramble(eventId);
+            }
+            if (request !== scrambleRequest) return; // a newer request replaced this one
+            currentScramble = scramble;
+            $("scramble").textContent = scramble;
+            const player = $("scramblePlayer");
+            player.puzzle = EVENTS[eventId].puzzle;
+            player.experimentalSetupAlg = scramble;
+            player.alg = "";
+        }
+
+        $("newScramble").addEventListener("click", newScramble);
+        $("event").addEventListener("change", () => {
+            $("event").blur(); // so the space bar goes to the timer, not the dropdown
+            renderSolves();
+            newScramble();
+        });
+
+        $("viewToggle").addEventListener("click", () => {
+            const player = $("scramblePlayer");
+            const is2D = player.visualization === "2D";
+            player.visualization = is2D ? "3D" : "2D";
+            $("viewToggle").textContent = is2D ? "Show 2D" : "Show 3D";
+        });
+
+        // ---------- Solve storage & stats ----------
+        const STORAGE_KEY = "cubeLabSolves";
+        let allSolves = {};
+        try {
+            allSolves = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        } catch {
+            allSolves = {};
+        }
+
+        function saveSolves() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(allSolves));
+            } catch {
+                // Storage unavailable (private mode etc.) - solves just won't persist.
+            }
+        }
+
+        function eventSolves() {
+            const eventId = $("event").value;
+            if (!allSolves[eventId]) allSolves[eventId] = [];
+            return allSolves[eventId];
+        }
+
+        // Time that counts for a solve, in ms. DNF counts as Infinity so it sorts as the worst.
+        function effectiveTime(solve) {
+            if (solve.penalty === "DNF") return Infinity;
+            return solve.ms + (solve.penalty === "+2" ? 2000 : 0);
+        }
+
+        // WCA-style trimmed average: drop the best and worst 5% (at least 1 each side).
+        function averageOf(solves) {
+            const times = solves.map(effectiveTime).sort((a, b) => a - b);
+            const trim = Math.max(1, Math.ceil(times.length * 0.05));
+            const middle = times.slice(trim, times.length - trim);
+            if (middle.includes(Infinity)) return Infinity;
+            return middle.reduce((sum, t) => sum + t, 0) / middle.length;
+        }
+
+        function formatTime(ms) {
+            if (ms === null || ms === undefined) return "-";
+            if (ms === Infinity) return "DNF";
+            const totalCs = Math.round(ms / 10);
+            const cs = totalCs % 100;
+            const totalSec = Math.floor(totalCs / 100);
+            const sec = totalSec % 60;
+            const min = Math.floor(totalSec / 60);
+            const csStr = String(cs).padStart(2, "0");
+            return min > 0 ? `${min}:${String(sec).padStart(2, "0")}.${csStr}` : `${sec}.${csStr}`;
+        }
+
+        function formatSolve(solve) {
+            if (solve.penalty === "DNF") return `DNF (${formatTime(solve.ms)})`;
+            return formatTime(effectiveTime(solve)) + (solve.penalty === "+2" ? "+" : "");
+        }
+
+        function renderSolves() {
+            const solves = eventSolves();
+            const finished = solves.filter((s) => s.penalty !== "DNF");
+
+            $("sCount").textContent = solves.length;
+            $("sMean").textContent = finished.length
+                ? formatTime(finished.reduce((sum, s) => sum + effectiveTime(s), 0) / finished.length)
+                : "-";
+            $("sBest").textContent = solves.length ? formatTime(Math.min(...solves.map(effectiveTime))) : "-";
+            $("sAo5").textContent = solves.length >= 5 ? formatTime(averageOf(solves.slice(-5))) : "-";
+            $("sAo12").textContent = solves.length >= 12 ? formatTime(averageOf(solves.slice(-12))) : "-";
+
+            let bestAo5 = null;
+            for (let i = 5; i <= solves.length; i++) {
+                const avg = averageOf(solves.slice(i - 5, i));
+                if (bestAo5 === null || avg < bestAo5) bestAo5 = avg;
+            }
+            $("sBestAo5").textContent = formatTime(bestAo5);
+
+            const list = $("solves");
+            list.innerHTML = "";
+            for (let i = solves.length - 1; i >= 0; i--) {
+                const solve = solves[i];
+                const row = document.createElement("div");
+                row.className = "solve";
+                row.title = solve.scramble;
+
+                const n = document.createElement("span");
+                n.className = "n";
+                n.textContent = i + 1 + ".";
+                const t = document.createElement("span");
+                t.className = "t";
+                t.textContent = formatSolve(solve);
+                row.append(n, t);
+
+                for (const penalty of ["+2", "DNF"]) {
+                    const btn = document.createElement("button");
+                    btn.textContent = penalty;
+                    btn.classList.toggle("on", solve.penalty === penalty);
+                    btn.addEventListener("click", () => {
+                        solve.penalty = solve.penalty === penalty ? null : penalty;
+                        saveSolves();
+                        renderSolves();
+                    });
+                    row.append(btn);
+                }
+
+                const del = document.createElement("button");
+                del.textContent = "✕";
+                del.title = "Delete solve";
+                del.addEventListener("click", () => {
+                    solves.splice(i, 1);
+                    saveSolves();
+                    renderSolves();
+                });
+                row.append(del);
+                list.append(row);
+            }
+        }
+
+        $("clearSolves").addEventListener("click", () => {
+            if (!confirm("Delete all solves for this event?")) return;
+            allSolves[$("event").value] = [];
+            saveSolves();
+            renderSolves();
+        });
+
+        // ---------- Timer ----------
+        // Flow (like a real competition):
+        //   with inspection: tap/press -> 15s inspection -> hold until green -> release to start -> any key/tap to stop
+        //   without:         hold until green -> release to start -> any key/tap to stop
+        const HOLD_MS = 300;
+        const INSPECTION_MS = 15000;
+        const timerEl = $("timer");
+        const timeEl = $("time");
+        const hintEl = $("timerHint");
+
+        let state = "idle"; // idle | inspecting | running
+        let holding = false;
+        let ready = false;
+        let holdTimeout = null;
+        let inspectionStart = 0;
+        let inspectionPenalty = null;
+        let solveStart = 0;
+        let frame = null;
+        let ignoreNextUp = false;
+
+        function setClasses() {
+            timerEl.classList.toggle("holding", holding && !ready);
+            timerEl.classList.toggle("ready", ready);
+            timerEl.classList.toggle("inspecting", state === "inspecting" && !holding);
+        }
+
+        function inspectionLabel(elapsed) {
+            if (elapsed < INSPECTION_MS) return String(Math.ceil((INSPECTION_MS - elapsed) / 1000));
+            if (elapsed < INSPECTION_MS + 2000) return "+2";
+            return "DNF";
+        }
+
+        function tick() {
+            const now = performance.now();
+            if (state === "inspecting" && !holding) {
+                timeEl.textContent = inspectionLabel(now - inspectionStart);
+            } else if (state === "running") {
+                timeEl.textContent = formatTime(now - solveStart);
+            }
+            frame = requestAnimationFrame(tick);
+        }
+
+        function startHold() {
+            holding = true;
+            ready = false;
+            holdTimeout = setTimeout(() => {
+                ready = true;
+                setClasses();
+            }, HOLD_MS);
+            if (state === "idle") timeEl.textContent = "0.00";
+            setClasses();
+        }
+
+        function cancelHold() {
+            clearTimeout(holdTimeout);
+            holding = false;
+            ready = false;
+            setClasses();
+        }
+
+        function startInspection() {
+            state = "inspecting";
+            inspectionStart = performance.now();
+            hintEl.textContent = "Inspect! Hold until green, then let go to start";
+            setClasses();
+        }
+
+        function startSolve() {
+            if (state === "inspecting") {
+                const elapsed = performance.now() - inspectionStart;
+                inspectionPenalty = elapsed >= INSPECTION_MS + 2000 ? "DNF"
+                    : elapsed >= INSPECTION_MS ? "+2" : null;
+            } else {
+                inspectionPenalty = null;
+            }
+            state = "running";
+            solveStart = performance.now();
+            hintEl.textContent = "Press any key or tap to stop";
+            cancelHold();
+        }
+
+        function stopSolve() {
+            const ms = performance.now() - solveStart;
+            state = "idle";
+            eventSolves().push({
+                ms: Math.round(ms),
+                penalty: inspectionPenalty,
+                scramble: currentScramble,
+                date: Date.now(),
+            });
+            saveSolves();
+            const solves = eventSolves();
+            timeEl.textContent = formatSolve(solves[solves.length - 1]);
+            hintEl.textContent = "Hold SPACE (or hold here) until green, then let go";
+            setClasses();
+            renderSolves();
+            newScramble();
+        }
+
+        function onDown() {
+            if (state === "running") {
+                stopSolve();
+                ignoreNextUp = true;
+                return;
+            }
+            if (state === "idle" && $("inspectToggle").checked) return; // inspection starts on release
+            startHold();
+        }
+
+        function onUp() {
+            if (ignoreNextUp) {
+                ignoreNextUp = false;
+                return;
+            }
+            if (state === "idle" && $("inspectToggle").checked && !holding) {
+                startInspection();
+                return;
+            }
+            if (!holding) return;
+            if (ready) startSolve();
+            else cancelHold();
+        }
+
+        const timerTabActive = () => $("panel-timer").classList.contains("active");
+        const isTyping = (e) => e.target.matches("input[type=text], textarea, select");
+
+        document.addEventListener("keydown", (e) => {
+            if (!timerTabActive() || isTyping(e) || e.repeat) return;
+            if (state === "running") {
+                e.preventDefault();
+                onDown();
+            } else if (e.code === "Space") {
+                e.preventDefault();
+                onDown();
+            } else if (e.code === "Escape" && state === "inspecting") {
+                cancelHold();
+                state = "idle";
+                timeEl.textContent = "0.00";
+                hintEl.textContent = "Hold SPACE (or hold here) until green, then let go";
+                setClasses();
+            }
+        });
+
+        document.addEventListener("keyup", (e) => {
+            if (!timerTabActive() || isTyping(e)) return;
+            if (e.code === "Space" || ignoreNextUp) {
+                e.preventDefault();
+                onUp();
+            }
+        });
+
+        timerEl.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            onDown();
+        });
+        timerEl.addEventListener("pointerup", (e) => {
+            e.preventDefault();
+            onUp();
+        });
+        // While solving, a tap anywhere stops the timer.
+        document.addEventListener("pointerdown", (e) => {
+            if (state === "running" && !timerEl.contains(e.target)) onDown();
+        });
+        document.addEventListener("pointerup", (e) => {
+            if (!timerEl.contains(e.target)) ignoreNextUp = false;
+        });
+
+        // Don't let focused buttons steal the space bar from the timer.
+        document.querySelectorAll("#panel-timer button, #panel-timer input[type=checkbox]").forEach((el) =>
+            el.addEventListener("keydown", (e) => { if (e.code === "Space") e.preventDefault(); }));
+        document.querySelectorAll("#panel-timer button").forEach((el) =>
+            el.addEventListener("click", () => el.blur()));
+
+        frame = requestAnimationFrame(tick);
+
+        // ---------- Notation: move buttons ----------
+        const FACES = ["R", "L", "U", "D", "F", "B"];
+        const notationPlayer = $("notationPlayer");
+        const history = [];
+
+        for (const suffix of ["", "'", "2"]) {
+            for (const face of FACES) {
+                const move = face + suffix;
+                const btn = document.createElement("button");
+                btn.textContent = move;
+                btn.addEventListener("click", () => {
+                    if (!Alg) return; // cube library didn't load
+                    notationPlayer.experimentalAddMove(move);
+                    history.push(move);
+                    $("history").textContent = history.join(" ");
+                });
+                $("moveButtons").append(btn);
+            }
+        }
+
+        $("resetCube").addEventListener("click", () => {
+            if (!Alg) return;
+            notationPlayer.alg = "";
+            history.length = 0;
+            $("history").textContent = "";
+        });
+
+        // ---------- Notation: quiz ----------
+        const quizPlayer = $("quizPlayer");
+        let quizAnswer = null;
+        let answered = false;
+        let streak = 0;
+        let bestStreak = 0;
+        try {
+            bestStreak = Number(localStorage.getItem("cubeLabBestStreak")) || 0;
+        } catch {
+            bestStreak = 0;
+        }
+        $("bestStreak").textContent = bestStreak;
+
+        const pick = (list) => list[Math.floor(Math.random() * list.length)];
+        const shuffle = (list) => list
+            .map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+
+        function playQuizMove() {
+            if (!Alg) return;
+            quizPlayer.alg = quizAnswer;
+            quizPlayer.jumpToStart();
+            setTimeout(() => quizPlayer.play(), 300);
+        }
+
+        function newQuestion() {
+            const faces = $("quizLevel").value === "easy" ? ["R", "U", "F"] : FACES;
+            const moves = faces.flatMap((f) => [f, f + "'", f + "2"]);
+            quizAnswer = pick(moves);
+            answered = false;
+
+            // Answer plus 3 wrong options; include the tricky "prime" version when possible.
+            const face = quizAnswer.replace(/['2]/, "");
+            const sameFace = [face, face + "'", face + "2"].filter((m) => m !== quizAnswer);
+            const others = shuffle(moves.filter((m) => m !== quizAnswer && !sameFace.includes(m)));
+            const options = shuffle([quizAnswer, sameFace[0], ...others.slice(0, 2)]);
+
+            const box = $("choices");
+            box.innerHTML = "";
+            for (const move of options) {
+                const btn = document.createElement("button");
+                btn.textContent = move;
+                btn.addEventListener("click", () => answer(btn, move));
+                box.append(btn);
+            }
+            $("feedback").textContent = "Watch the cube… which move was that?";
+            playQuizMove();
+        }
+
+        function answer(btn, move) {
+            if (answered) return;
+            answered = true;
+            const correct = move === quizAnswer;
+            if (correct) {
+                streak++;
+                if (streak > bestStreak) {
+                    bestStreak = streak;
+                    try { localStorage.setItem("cubeLabBestStreak", String(bestStreak)); } catch { /* ignore */ }
+                }
+                $("feedback").textContent = "✅ Yes! Next one coming…";
+            } else {
+                streak = 0;
+                $("feedback").textContent = `❌ That was ${quizAnswer}. Next one coming…`;
+            }
+            $("choices").querySelectorAll("button").forEach((b) => {
+                if (b.textContent === quizAnswer) b.classList.add("right");
+            });
+            if (!correct) btn.classList.add("wrong");
+            $("streak").textContent = streak;
+            $("bestStreak").textContent = bestStreak;
+            setTimeout(newQuestion, 1500);
+        }
+
+        $("quizReplay").addEventListener("click", playQuizMove);
+        $("quizLevel").addEventListener("change", () => {
+            streak = 0;
+            $("streak").textContent = 0;
+            newQuestion();
+        });
+
+        // ---------- Notation: algorithm playground ----------
+        const PRESETS = [
+            ["Sexy move", "R U R' U'"],
+            ["Sune", "R U R' U R U2 R'"],
+            ["T-Perm", "R U R' U' R' F R2 U' R' U' R U R' F'"],
+            ["Checkerboard", "R2 L2 U2 D2 F2 B2"],
+        ];
+        const algPlayer = $("algPlayer");
+        const MOVE_PATTERN = /^(\d*[RLUDFB]w?|[rludfbMESxyz])\d*'?$/;
+
+        function playAlg() {
+            if (!Alg) return;
+            const text = $("algInput").value.trim();
+            // Every move must look like R, U', F2, Rw, r, M, x... (brackets like (R U)2 are fine too).
+            const tokens = text.replace(/\)\d*'?/g, " ").replace(/\(/g, " ").split(/\s+/).filter(Boolean);
+            if (!tokens.every((t) => MOVE_PATTERN.test(t))) {
+                $("algFeedback").textContent = "Hmm, I can't read that. Use letters like R U F' D2.";
+                return;
+            }
+            $("algFeedback").textContent = "";
+            algPlayer.alg = text;
+            algPlayer.jumpToStart();
+            setTimeout(() => algPlayer.play(), 300);
+        }
+
+        for (const [name, alg] of PRESETS) {
+            const btn = document.createElement("button");
+            btn.textContent = name;
+            btn.addEventListener("click", () => {
+                $("algInput").value = alg;
+                playAlg();
+            });
+            $("presets").append(btn);
+        }
+
+        $("algPlay").addEventListener("click", playAlg);
+        $("algInput").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") playAlg();
+        });
+
+        // ---------- Start ----------
+        renderSolves();
+        newScramble();
+        if (Alg) {
+            algPlayer.alg = $("algInput").value;
+            newQuestion();
+        }
+    </script>
+</body>
+</html>
