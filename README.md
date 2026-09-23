@@ -1,6 +1,27 @@
-# Fun Tetris Game
+# Fun Tetris (and friends)
 
-A lightweight Tetris implementation available in two versions - terminal-based Python and web-based HTML/JavaScript. Perfect for learning game development concepts!
+A collection of small, single-file web games and tools. No build step: open the HTML files in a browser
+or host the repo on GitHub Pages.
+
+## What's in here
+
+| Page / tool | What it is | Docs |
+|---|---|---|
+| 🎮 `index.html` | Tetris in the browser, works on phones | This README |
+| 🐍 `tetris.py` | Tetris in the terminal (Python) | This README |
+| ⏱ `rubiks.html` | **Cube Lab**: speedcubing timer with WCA-style scrambles, plus a notation trainer | [CUBE_LAB.md](CUBE_LAB.md) |
+| 📚 `algorithms.html` | **Alg Trainer**: learn 2-Look, OLL and PLL, track progress, drill recognition | [CUBE_LAB.md](CUBE_LAB.md) |
+| 🎵 `spotify-to-apple-music/` | Converts Spotify playlist exports to Apple Music playlists (Node.js) | [its CLAUDE.md](spotify-to-apple-music/CLAUDE.md) |
+
+The web pages link to each other: the Tetris page links to Cube Lab, and both cube pages share
+a top menu (Timer & Notation · Alg Trainer · Tetris).
+
+---
+
+# Tetris
+
+Available in two versions: terminal-based Python and web-based HTML/JavaScript. Perfect for learning
+game development concepts!
 
 ## Two Versions Available
 
@@ -16,26 +37,7 @@ A lightweight Tetris implementation available in two versions - terminal-based P
 - Beautiful gradient UI with responsive design
 - Perfect for playing on your phone
 - Single HTML file - just open and play!
-
-### 🧊 Cube Lab (`rubiks.html`)
-A Rubik's cube page for speedcubers, built on [cubing.js](https://js.cubing.net/cubing/):
-- **Competition timer**: official WCA-style random scrambles (3x3, 2x2, 4x4, Pyraminx, Skewb),
-  15-second inspection with automatic +2/DNF, hold-to-start (space bar or touch), and
-  ao5 / ao12 / best averages calculated the WCA way. Solves are saved in your browser.
-- **Scramble preview**: see the scrambled puzzle in 2D or 3D so you can check your scramble.
-- **Notation trainer**: turn a 3D cube with R, U', F2... buttons, play "Name that move!",
-  and watch algorithms like Sune and T-Perm in the playground.
-
-### 📚 Alg Trainer (`algorithms.html`)
-A separate page for learning last-layer algorithms, linked from Cube Lab's top menu:
-- **2-Look**: the 16-algorithm beginner route in 4 steps, with tips on how to recognise each case.
-- **OLL (57)** and **PLL (21)**: every case grouped by shape, with a picture, the algorithm,
-  and a 3D animation when you tap it. Each algorithm was checked with a cube simulator.
-- **Progress tracking**: mark cases Not started / Learning / Learned (saved in your browser),
-  with progress bars and filters.
-- **Drill**: shows a random case from any angle, lets you set it up on a real cube, then reveals the answer.
-
-Needs an internet connection for the 3D cube. Offline, the timer still works with simpler scrambles.
+- Ghost piece, hold, pause, 7-bag randomizer and a saved high score
 
 ## Features
 
@@ -73,6 +75,8 @@ Needs an internet connection for the 3D cube. Offline, the timer still works wit
 **Web Controls:**
 - **Arrow Keys** - Move left/right, rotate (up), soft drop (down)
 - **Space** - Hard drop
+- **Shift / C** - Hold piece
+- **P** - Pause/Resume
 - **Touch Buttons** - For mobile play (buttons shown on screen)
 
 ### Python Terminal Version
@@ -133,8 +137,8 @@ This implementation demonstrates several programming concepts:
 Want to extend your learning? Try adding:
 
 ### For Both Versions
-- [ ] Ghost piece (preview where piece will land)
-- [ ] Hold piece functionality
+- [x] Ghost piece (preview where piece will land) - web version
+- [x] Hold piece functionality - web version
 - [ ] Different game modes (marathon, sprint, ultra)
 - [ ] Custom color themes
 
@@ -144,7 +148,7 @@ Want to extend your learning? Try adding:
 - [ ] Sound effects (using pygame mixer)
 
 ### Web-Specific
-- [ ] High score with localStorage
+- [x] High score with localStorage
 - [ ] Sound effects (using Web Audio API)
 - [ ] Animations and particle effects
 - [ ] Progressive Web App (PWA) for offline play
