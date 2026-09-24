@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cube Solver</title>
+    <link rel="stylesheet" href="css/site.css">
+    <style>
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 10px 4px;
+            border: 2px solid #667eea;
+            background: #fff;
+            color: #667eea;
+            border-radius: 8px;
+        }
+
+        .tab.active { background: #667eea; color: #fff; }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* The cube net: U on top, L F R B across the middle, D underneath */
+        .net {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .sticker {
+            aspect-ratio: 1;
+            border: 1px solid #333;
+            border-radius: 3px;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .sticker.center { cursor: default; border: 2px solid #000; }
+        .sticker.unknown { background: #ced4da !important; }
+
+        .palette { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+
+        .swatch {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            border: 3px solid #aaa;
+            padding: 0;
+        }
+
+        .swatch.selected { border-color: #000; box-shadow: 0 0 0 3px #fab005; }
+
+        .camera-box {
+            position: relative;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        #camCanvas {
+            width: 100%;
+            border-radius: 10px;
+            background: #1e1e2e;
+            display: block;
+        }
+
+        .scan-step {
+            font-size: 1.1em;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+
+        .color-word { padding: 1px 6px; border-radius: 4px; border: 1px solid #333; }
+
+        .scanned-faces { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+
+        .mini-face {
+            display: grid;
+            grid-template-columns: repeat(3, 12px);
+            gap: 1px;
+            padding: 3px;
+            border: 2px solid #d0d4f0;
+            border-radius: 4px;
+        }
+
+        .mini-face.done { border-color: #2f9e44; }
+        .mini-face div { width: 12px; height: 12px; background: #ced4da; }
+
+        .solution-moves { line-height: 2; word-spacing: 0.2em; }
+
+        .solution-moves span {
+            padding: 2px 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .solution-moves span.done { color: #2f9e44; opacity: 0.6; }
+        .solution-moves span.current { background: #fab005; color: #000; font-weight: bold; }
+
+        .follow-move {
+            text-align: center;
+            font-size: 2.6em;
+            font-weight: bold;
+            color: #764ba2;
+            min-height: 1.3em;
+        }
+
+        .follow-words { text-align: center; min-height: 1.4em; margin-bottom: 8px; }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .stat-box {
+            background: #fff;
+            border: 2px solid #d0d4f0;
+            border-radius: 8px;
+            padding: 8px 4px;
+        }
+
+        .stat-box b { display: block; font-size: 1.6em; color: #764ba2; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>🤖 Solver</h1>
+            <nav class="site-nav" data-current="solver.html"></nav>
+        </header>
+
+        <p class="intro">
+            Show the computer your scrambled cube and it finds a solution in about <b>20 moves</b>.
+            A human using CFOP needs about 55-60. Scan it with your camera, or paint the colours in by hand.
+        </p>
+
+        <div class="warn" id="loadWarn" style="display:none">
+            Couldn't load the solver library (are you offline?). The solver needs an internet connection.
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="camera">📷 Scan with camera</button>
+            <button class="tab" data-tab="paint">🎨 Paint by hand</button>
+            <button class="tab" data-tab="random">🎲 Random cube</button>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <section class="panel card active" id="panel-camera">
+                    <h2>Scan your cube</h2>
+                    <div class="scan-step" id="scanStep"></div>
+                    <div class="camera-box">
+                        <canvas id="camCanvas" width="480" height="360"></canvas>
+                    </div>
+                    <div class="row" style="justify-content:center;margin-top:10px">
+                        <button class="primary" id="camStart">Turn on camera</button>
+                        <button class="primary" id="camCapture" disabled>📸 Capture this face</button>
+                        <button id="camRedo" disabled>Redo last face</button>
+                    </div>
+                    <div class="scanned-faces" id="scannedFaces"></div>
+                    <p class="note">
+                        Hold the cube so one face fills the grid, in good light without glare. Keep it the
+                        way the instructions say (which colour faces you, which is on top). You can fix any
+                        wrong colours on the cube net afterwards.
+                    </p>
+                </section>
+
+                <section class="panel card" id="panel-paint">
+                    <h2>Paint the colours</h2>
+                    <p class="tip">Pick a colour, then tap stickers on the net. Hold your cube with
+                        <b>white on top</b> and <b>green facing you</b> and copy each face as you see it.</p>
+                    <div class="row" style="justify-content:center">
+                        <button id="clearNet">Clear all</button>
+                        <button id="solvedNet">Reset to solved</button>
+                    </div>
+                </section>
+
+                <section class="panel card" id="panel-random">
+                    <h2>Try a random cube</h2>
+                    <p class="tip">No cube handy? Make a random scramble and watch the computer solve it.</p>
+                    <button class="primary" id="randomCube">🎲 Scramble a random cube</button>
+                    <p class="note" id="randomScramble"></p>
+                </section>
+
+                <div class="card">
+                    <h2>Your cube</h2>
+                    <div class="net" id="net"></div>
+                    <div class="palette" id="palette"></div>
+                    <div id="netError"></div>
+                    <button class="primary" id="solveBtn" style="width:100%;font-size:1.1em">🤖 Solve it!</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="card" id="solutionCard" style="display:none">
+                    <h2>Solution</h2>
+                    <div class="stats-row">
+                        <div class="stat-box"><b id="moveCount">0</b>moves</div>
+                        <div class="stat-box"><b id="thinkTime">0</b>ms to think</div>
+                        <div class="stat-box"><b>20</b>God's Number</div>
+                    </div>
+                    <p class="tip"><b>Hold your cube with white on top and green facing you</b>, then follow along.</p>
+                    <twisty-player id="solvePlayer" puzzle="3x3x3" control-panel="none" background="none"></twisty-player>
+                    <div class="follow-move" id="followMove"></div>
+                    <div class="follow-words" id="followWords"></div>
+                    <div class="row" style="justify-content:center">
+                        <button id="prevMove">◀ Back</button>
+                        <button class="primary" id="nextMove">Next move ▶</button>
+                        <button id="playAll">▶ Play all</button>
+                    </div>
+                    <p class="note" style="text-align:center">Tip: the ← and → keys step through the moves too.</p>
+                    <h3>All moves</h3>
+                    <div class="solution-moves" id="solutionMoves"></div>
+                </div>
+
+                <div class="card">
+                    <h2>How does the computer do it?</h2>
+                    <details>
+                        <summary>The numbers</summary>
+                        <p>A 3x3 cube can be scrambled into <b>43,252,003,274,489,856,000</b> different positions
+                            (about 43 quintillion). If you had one cube for every position, they'd cover the Earth
+                            about 275 times over.</p>
+                        <p>In 2010, a team of four people (Tomas Rokicki, Herbert Kociemba, Morley Davidson and John Dethridge)
+                            proved with lots of help from Google's computers that <b>every</b> position can be solved in
+                            <b>20 moves or fewer</b>. People call that <b>God's Number</b>.</p>
+                    </details>
+                    <details>
+                        <summary>The two-phase algorithm</summary>
+                        <p>The computer can't try every possible solution - there are far too many. Instead it
+                            uses Herbert Kociemba's <b>two-phase algorithm</b>:</p>
+                        <p><b>Phase 1:</b> turn the cube until it's in a special "tidy" group where every piece is
+                            oriented right and the middle-layer edges are in the middle layer. From there, you can
+                            solve it using only U, D, R2, L2, F2 and B2.</p>
+                        <p><b>Phase 2:</b> solve it using only those moves. Because there are fewer moves to pick
+                            from, the search is much smaller.</p>
+                        <p>It uses huge pre-computed tables that say "from here you need at least N more moves", so it
+                            can skip any path that's already too long. That trick is called <b>pruning</b>, and it's
+                            why it finds a ~20 move solution in milliseconds.</p>
+                        <p>This page uses <b>min2phase</b>, a fast version of the two-phase algorithm by Chen Shuang
+                            (who also made csTimer), through the cubing.js library.</p>
+                    </details>
+                    <details>
+                        <summary>Why don't speedcubers solve like this?</summary>
+                        <p>The computer's moves look random to a human - there's no pattern to spot, so you
+                            can't plan them in your head. CFOP takes more moves but each step is something you
+                            can <b>recognise</b> and do from memory, fast. The fastest cubers turn about 10+ moves per second!</p>
+                        <p>There IS a competition event for finding short solutions by hand: <b>Fewest Moves</b>.
+                            You get one hour, pen and paper, and the best humans get close to 20.</p>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import "./js/nav.js";
+        import { Cube, SOLVED, faceletsToPattern, invertMoves, splitAlg, randomMoveScramble } from "./js/cube-engine.js";
+        import { sampleCells, classifyStickers } from "./js/cube-scan.js";
+        import { checkAchievements, setFlag } from "./js/progress.js";
+
+        const CUBING = "https://cdn.cubing.net/v0/js/cubing/";
+        const $ = (id) => document.getElementById(id);
+
+        let solver = null;
+        try {
+            const [, { cube3x3x3 }, { KPattern }, search] = await Promise.all([
+                import(CUBING + "twisty"), import(CUBING + "puzzles"), import(CUBING + "kpuzzle"), import(CUBING + "search"),
+            ]);
+            const kpuzzle = await cube3x3x3.kpuzzle();
+            solver = async (pieces) => (await search.experimentalSolve3x3x3IgnoringCenters(new KPattern(kpuzzle, pieces))).toString();
+        } catch (err) {
+            console.error("cubing.js failed to load", err);
+            $("loadWarn").style.display = "block";
+        }
+
+        // ---------- Colours ----------
+        // Standard colour scheme: white top, green front.
+        const COLORS = {
+            U: ["#ffffff", "white"], R: ["#e03131", "red"], F: ["#2f9e44", "green"],
+            D: ["#ffd43b", "yellow"], L: ["#ff922b", "orange"], B: ["#1c7ed6", "blue"],
+        };
+        const FACE_ORDER = ["U", "R", "F", "D", "L", "B"];
+
+        // ---------- Cube net ----------
+        // Where each face sits in the 12 x 9 net grid.
+        const NET_POS = { U: [0, 3], L: [3, 0], F: [3, 3], R: [3, 6], B: [3, 9], D: [6, 3] };
+        let facelets = SOLVED.split("");
+        let selected = "U";
+        const stickerEls = [];
+
+        function buildNet() {
+            const net = $("net");
+            const cells = [];
+            FACE_ORDER.forEach((face, fi) => {
+                const [row0, col0] = NET_POS[face];
+                for (let i = 0; i < 9; i++) {
+                    const index = fi * 9 + i;
+                    const btn = document.createElement("button");
+                    btn.className = "sticker" + (i === 4 ? " center" : "");
+                    btn.style.gridRow = row0 + Math.floor(i / 3) + 1;
+                    btn.style.gridColumn = col0 + (i % 3) + 1;
+                    btn.setAttribute("aria-label", `${face} sticker ${i + 1}`);
+                    if (i !== 4) {
+                        btn.addEventListener("click", () => {
+                            facelets[index] = selected;
+                            renderNet();
+                            hideSolution();
+                        });
+                    }
+                    stickerEls[index] = btn;
+                    cells.push(btn);
+                }
+            });
+            net.append(...cells);
+
+            for (const face of FACE_ORDER) {
+                const sw = document.createElement("button");
+                sw.className = "swatch";
+                sw.style.background = COLORS[face][0];
+                sw.title = COLORS[face][1];
+                sw.dataset.face = face;
+                sw.addEventListener("click", () => {
+                    selected = face;
+                    renderPalette();
+                });
+                $("palette").append(sw);
+            }
+            renderPalette();
+        }
+
+        function renderPalette() {
+            document.querySelectorAll(".swatch").forEach((s) => s.classList.toggle("selected", s.dataset.face === selected));
+        }
+
+        function renderNet() {
+            facelets.forEach((f, i) => {
+                stickerEls[i].classList.toggle("unknown", f === "?");
+                stickerEls[i].style.background = f === "?" ? "" : COLORS[f][0];
+            });
+            $("netError").innerHTML = "";
+        }
+
+        function setFacelets(str) {
+            facelets = str.split("");
+            renderNet();
+            hideSolution();
+        }
+
+        // A solution only makes sense for the cube it was made for.
+        function hideSolution() {
+            $("solutionCard").style.display = "none";
+            moves = [];
+        }
+
+        $("clearNet").addEventListener("click", () => {
+            setFacelets(FACE_ORDER.map((f) => "????" + f + "????").join(""));
+        });
+        $("solvedNet").addEventListener("click", () => setFacelets(SOLVED));
+
+        // ---------- Tabs ----------
+        document.querySelectorAll(".tab").forEach((tab) => {
+            tab.addEventListener("click", () => {
+                document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === tab));
+                document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + tab.dataset.tab));
+                if (tab.dataset.tab !== "camera") stopCamera();
+            });
+        });
+
+        // ---------- Random cube ----------
+        $("randomCube").addEventListener("click", () => {
+            const scramble = randomMoveScramble(25);
+            setFacelets(new Cube().apply(scramble).toString());
+            $("randomScramble").textContent = `Scramble: ${scramble}`;
+            solve();
+        });
+
+        // ---------- Camera ----------
+        // Scan order and how to hold the cube for each face (white top / green front colour scheme).
+        const SCAN_STEPS = [
+            { face: "F", top: "U" }, { face: "R", top: "U" }, { face: "B", top: "U" },
+            { face: "L", top: "U" }, { face: "U", top: "B" }, { face: "D", top: "F" },
+        ];
+        const canvas = $("camCanvas");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        let stream = null;
+        let video = null;
+        let scanned = {};
+        let step = 0;
+        let drawing = null;
+
+        const word = (face) =>
+            `<span class="color-word" style="background:${COLORS[face][0]};color:${face === "U" || face === "D" ? "#000" : "#fff"}">${COLORS[face][1].toUpperCase()}</span>`;
+
+        function renderScanStep() {
+            if (step >= SCAN_STEPS.length) {
+                $("scanStep").innerHTML = "All 6 faces scanned! ✅ Check the net, then press Solve.";
+            } else {
+                const { face, top } = SCAN_STEPS[step];
+                $("scanStep").innerHTML = `Face ${step + 1} of 6: ${word(face)} centre facing the camera,<br>${word(top)} centre on top`;
+            }
+            $("scannedFaces").innerHTML = "";
+            for (const { face } of SCAN_STEPS) {
+                const mini = document.createElement("div");
+                mini.className = "mini-face" + (scanned[face] ? " done" : "");
+                for (let i = 0; i < 9; i++) {
+                    const d = document.createElement("div");
+                    if (scanned[face]) d.style.background = `rgb(${scanned[face][i].map(Math.round).join(",")})`;
+                    mini.append(d);
+                }
+                $("scannedFaces").append(mini);
+            }
+            $("camCapture").disabled = !stream || step >= SCAN_STEPS.length;
+            $("camRedo").disabled = step === 0;
+        }
+
+        function gridArea() {
+            const size = Math.min(canvas.width, canvas.height) * 0.7;
+            return { left: (canvas.width - size) / 2, top: (canvas.height - size) / 2, size };
+        }
+
+        function drawFrame() {
+            if (!video) return;
+            if (video.videoWidth) {
+                canvas.width = 480;
+                canvas.height = Math.round((480 * video.videoHeight) / video.videoWidth);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const { left, top, size } = gridArea();
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 3;
+                for (let i = 0; i <= 3; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(left + (i * size) / 3, top);
+                    ctx.lineTo(left + (i * size) / 3, top + size);
+                    ctx.moveTo(left, top + (i * size) / 3);
+                    ctx.lineTo(left + size, top + (i * size) / 3);
+                    ctx.stroke();
+                }
+            }
+            drawing = requestAnimationFrame(drawFrame);
+        }
+
+        async function startCamera() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                $("scanStep").textContent = "This browser can't use the camera here. (Cameras only work on https:// pages.)";
+                return;
+            }
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false,
+                });
+            } catch (err) {
+                $("scanStep").textContent = "Couldn't turn on the camera: " + (err.message || err.name);
+                return;
+            }
+            video = document.createElement("video");
+            video.playsInline = true;
+            video.muted = true;
+            video.srcObject = stream;
+            await video.play();
+            $("camStart").textContent = "Camera on";
+            $("camStart").disabled = true;
+            drawFrame();
+            renderScanStep();
+        }
+
+        function stopCamera() {
+            cancelAnimationFrame(drawing);
+            stream?.getTracks().forEach((t) => t.stop());
+            stream = null;
+            video = null;
+            $("camStart").textContent = "Turn on camera";
+            $("camStart").disabled = false;
+            renderScanStep();
+        }
+
+        function capture() {
+            if (!video || step >= SCAN_STEPS.length) return;
+            // Sample a clean frame (without the grid lines drawn on top).
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const { left, top, size } = gridArea();
+            scanned[SCAN_STEPS[step].face] = sampleCells(ctx, left, top, size);
+            step++;
+            if (step === SCAN_STEPS.length) {
+                setFacelets(classifyStickers(scanned));
+                stopCamera();
+                cameraScanned = true;
+            }
+            renderScanStep();
+        }
+
+        let cameraScanned = false;
+        $("camStart").addEventListener("click", startCamera);
+        $("camCapture").addEventListener("click", capture);
+        $("camRedo").addEventListener("click", () => {
+            if (step === 0) return;
+            step--;
+            delete scanned[SCAN_STEPS[step].face];
+            if (!stream) startCamera();
+            renderScanStep();
+        });
+
+        // ---------- Solving ----------
+        const player = $("solvePlayer");
+        let moves = [];
+        let at = 0;
+
+        async function solve() {
+            $("netError").innerHTML = "";
+            if (facelets.includes("?")) {
+                showError(["Some stickers are still grey. Paint every sticker first."]);
+                return;
+            }
+            const { pieces, errors } = faceletsToPattern(facelets.join(""));
+            if (errors) {
+                showError(errors);
+                return;
+            }
+            if (!solver) {
+                showError(["The solver couldn't load. Check your internet connection and reload the page."]);
+                return;
+            }
+            if (facelets.join("") === SOLVED) {
+                showError(["That cube is already solved! 😄 Scramble it first."]);
+                return;
+            }
+            $("solveBtn").disabled = true;
+            $("solveBtn").textContent = "🤖 Thinking…";
+            const t0 = performance.now();
+            try {
+                const solution = await solver(pieces);
+                moves = splitAlg(solution);
+                $("thinkTime").textContent = Math.max(1, Math.round(performance.now() - t0));
+            } catch (err) {
+                console.error(err);
+                showError(["Something went wrong while solving. Try again?"]);
+                return;
+            } finally {
+                $("solveBtn").disabled = false;
+                $("solveBtn").textContent = "🤖 Solve it!";
+            }
+            $("moveCount").textContent = moves.length;
+            $("solutionCard").style.display = "";
+            player.experimentalSetupAlg = invertMoves(moves).join(" ");
+            showStep(0, false);
+            setFlag("solverUsed");
+            if (cameraScanned) setFlag("cameraScan");
+            checkAchievements();
+            if (window.innerWidth < 760) $("solutionCard").scrollIntoView({ behavior: "smooth" });
+        }
+
+        function showError(list) {
+            $("netError").innerHTML = list.map((e) => `<div class="error">${e}</div>`).join("");
+        }
+
+        const FACE_WORDS = { U: "top", D: "bottom", R: "right", L: "left", F: "front", B: "back" };
+
+        function describe(move) {
+            const face = FACE_WORDS[move[0]];
+            if (move.endsWith("2")) return `Turn the ${face} face twice (half turn)`;
+            if (move.endsWith("'")) return `Turn the ${face} face counter-clockwise`;
+            return `Turn the ${face} face clockwise`;
+        }
+
+        function showStep(k, animate = true) {
+            at = Math.max(0, Math.min(moves.length, k));
+            if (animate && at > 0) {
+                player.alg = moves.slice(0, at - 1).join(" ");
+                player.jumpToEnd();
+                player.experimentalAddMove(moves[at - 1]);
+            } else {
+                player.alg = moves.slice(0, at).join(" ");
+                player.jumpToEnd();
+            }
+            if (at === moves.length) {
+                $("followMove").textContent = "Solved! 🎉";
+                $("followWords").textContent = `That's all ${moves.length} moves.`;
+            } else {
+                $("followMove").textContent = moves[at];
+                $("followWords").textContent = `Move ${at + 1} of ${moves.length}: ${describe(moves[at])}`;
+            }
+            const box = $("solutionMoves");
+            box.innerHTML = "";
+            moves.forEach((m, i) => {
+                const span = document.createElement("span");
+                span.textContent = m;
+                span.className = i < at ? "done" : i === at ? "current" : "";
+                span.addEventListener("click", () => showStep(i, false));
+                box.append(span, " ");
+            });
+            $("prevMove").disabled = at === 0;
+            $("nextMove").disabled = at === moves.length;
+        }
+
+        $("solveBtn").addEventListener("click", solve);
+        $("nextMove").addEventListener("click", () => showStep(at + 1));
+        $("prevMove").addEventListener("click", () => showStep(at - 1, false));
+        $("playAll").addEventListener("click", () => {
+            player.alg = moves.join(" ");
+            player.jumpToStart();
+            setTimeout(() => player.play(), 200);
+            at = moves.length;
+        });
+        document.addEventListener("keydown", (e) => {
+            if (!moves.length || e.target.matches("input, select, textarea")) return;
+            if (e.key === "ArrowRight") showStep(at + 1);
+            if (e.key === "ArrowLeft") showStep(at - 1, false);
+        });
+
+        // ---------- Start ----------
+        buildNet();
+        renderNet();
+        renderScanStep();
+        checkAchievements();
+
+        // For automated tests.
+        window.cubeLabTestHook = { setFacelets, solve, capture, get facelets() { return facelets.join(""); }, get moves() { return moves; } };
+    </script>
+</body>
+</html>

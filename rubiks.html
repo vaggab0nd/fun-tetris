@@ -274,11 +274,7 @@
     <div class="page">
         <header>
             <h1>🧊 Cube Lab</h1>
-            <nav class="site-nav">
-                <a class="current" href="rubiks.html">⏱ Timer &amp; Notation</a>
-                <a href="algorithms.html">📚 Alg Trainer</a>
-                <a href="index.html">🎮 Tetris</a>
-            </nav>
+            <nav class="site-nav" data-current="rubiks.html"></nav>
         </header>
 
         <div class="warn" id="loadWarn">
@@ -412,6 +408,8 @@
     </div>
 
     <script type="module">
+        import "./js/nav.js";
+        import { checkAchievements } from "./js/progress.js";
         // cubing.js (https://js.cubing.net/cubing/) gives us the 3D cube and official WCA-style
         // random-state scrambles. If it fails to load, we fall back to simple random-move scrambles.
         const CUBING = "https://cdn.cubing.net/v0/js/cubing/";
@@ -731,6 +729,7 @@
             hintEl.textContent = "Hold SPACE (or hold here) until green, then let go";
             setClasses();
             renderSolves();
+            checkAchievements();
             newScramble();
         }
 
@@ -894,6 +893,7 @@
                 if (streak > bestStreak) {
                     bestStreak = streak;
                     try { localStorage.setItem("cubeLabBestStreak", String(bestStreak)); } catch { /* ignore */ }
+                    checkAchievements();
                 }
                 $("feedback").textContent = "✅ Yes! Next one coming…";
             } else {
@@ -957,6 +957,7 @@
         });
 
         // ---------- Start ----------
+        checkAchievements();
         renderSolves();
         newScramble();
         if (Alg) {
