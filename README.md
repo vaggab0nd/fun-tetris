@@ -11,10 +11,13 @@ or host the repo on GitHub Pages.
 | 🐍 `tetris.py` | Tetris in the terminal (Python) | This README |
 | ⏱ `rubiks.html` | **Cube Lab**: speedcubing timer with WCA-style scrambles, plus a notation trainer | [CUBE_LAB.md](CUBE_LAB.md) |
 | 📚 `algorithms.html` | **Alg Trainer**: learn 2-Look, OLL and PLL, track progress, drill recognition | [CUBE_LAB.md](CUBE_LAB.md) |
+| 📡 `smartcube.html` | **Smart Cube**: Bluetooth smart cubes (or keyboard), CFOP splits, case recognition, replays | [CUBE_LAB.md](CUBE_LAB.md) |
+| 🤖 `solver.html` | **Solver**: scan a cube with the camera, get a ~20 move solution | [CUBE_LAB.md](CUBE_LAB.md) |
+| 🏆 `trophies.html` | **Trophies**: XP, achievements, world ranking vs real WCA results | [CUBE_LAB.md](CUBE_LAB.md) |
 | 🎵 `spotify-to-apple-music/` | Converts Spotify playlist exports to Apple Music playlists (Node.js) | [its CLAUDE.md](spotify-to-apple-music/CLAUDE.md) |
 
-The web pages link to each other: the Tetris page links to Cube Lab, and both cube pages share
-a top menu (Timer & Notation · Alg Trainer · Tetris).
+The web pages link to each other: the Tetris page links to Cube Lab, and all the cube pages share
+a top menu (Timer · Alg Trainer · Smart Cube · Solver · Trophies · Tetris).
 
 ---
 

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trophies</title>
+    <link rel="stylesheet" href="css/site.css">
+    <style>
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .level-badge {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffd43b, #f08c00);
+            color: #1e1e2e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 16px rgba(240, 140, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        .level-badge .n { font-size: 2em; line-height: 1; }
+        .level-badge .l { font-size: 0.7em; }
+
+        .profile-info { flex: 1; min-width: 200px; }
+        .title { font-size: 1.4em; font-weight: bold; color: #764ba2; }
+
+        .xpbar {
+            height: 14px;
+            background: #e2e4f0;
+            border-radius: 7px;
+            overflow: hidden;
+            margin: 6px 0 4px;
+        }
+
+        .xpbar div { height: 100%; background: linear-gradient(90deg, #667eea, #cc5de8); }
+
+        .tiles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .tiles { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .tile {
+            background: #fff;
+            border: 2px solid #d0d4f0;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .tile b { display: block; font-size: 1.5em; color: #764ba2; }
+
+        .achievements {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .ach {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            background: #fff;
+            border: 2px solid #d0d4f0;
+            border-left-width: 6px;
+            border-radius: 8px;
+            padding: 8px;
+        }
+
+        .ach .icon { font-size: 1.6em; line-height: 1; }
+        .ach .name { font-weight: bold; }
+        .ach .desc { font-size: 0.8em; opacity: 0.8; }
+        .ach .rarity { font-size: 0.72em; font-weight: bold; text-transform: uppercase; }
+        .ach.common { border-left-color: #adb5bd; }
+        .ach.rare { border-left-color: #4dabf7; }
+        .ach.epic { border-left-color: #cc5de8; }
+        .ach.legendary { border-left-color: #ff922b; }
+        .ach.common .rarity { color: #868e96; }
+        .ach.rare .rarity { color: #1c7ed6; }
+        .ach.epic .rarity { color: #9c36b5; }
+        .ach.legendary .rarity { color: #e8590c; }
+        .ach.locked { filter: grayscale(1); opacity: 0.45; }
+
+        .rank-row {
+            background: #fff;
+            border: 2px solid #d0d4f0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .rank-row .head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+        .rank-row .big { font-size: 1.15em; font-weight: bold; color: #764ba2; }
+
+        .meter {
+            position: relative;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #ced4da, #74c0fc, #845ef7, #f76707);
+            margin: 8px 0 2px;
+        }
+
+        .meter .you {
+            position: absolute;
+            top: -5px;
+            width: 4px;
+            height: 22px;
+            background: #1e1e2e;
+            border-radius: 2px;
+        }
+
+        .meter-labels { display: flex; justify-content: space-between; font-size: 0.72em; opacity: 0.7; }
+
+        .calc-result { margin-top: 10px; min-height: 1.4em; }
+
+        .person-card { margin-top: 10px; }
+        .person-card h3 { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>🏆 Trophies</h1>
+            <nav class="site-nav" data-current="trophies.html"></nav>
+        </header>
+
+        <div class="card">
+            <div class="profile">
+                <div class="level-badge"><span class="n" id="level">1</span><span class="l">LEVEL</span></div>
+                <div class="profile-info">
+                    <div class="title" id="title">Cube Rookie</div>
+                    <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
+                    <div class="note" style="margin-top:0" id="xpText"></div>
+                </div>
+            </div>
+            <div class="tiles">
+                <div class="tile"><b id="tSolves">0</b>solves</div>
+                <div class="tile"><b id="tDays">0</b>days cubing</div>
+                <div class="tile"><b id="tAlgs">0</b>algs learned</div>
+                <div class="tile"><b id="tAch">0</b>achievements</div>
+            </div>
+            <p class="note">Earn XP by timing solves (⏱ Timer and 📡 Smart Cube), learning algorithms (📚 Alg Trainer) and unlocking achievements.</p>
+        </div>
+
+        <div class="card">
+            <h2>🌍 How do you rank against the world?</h2>
+            <p class="tip">Your best times compared with everyone who has ever competed at an official
+                World Cube Association competition. (Home times are a bit easier than competition times: no
+                nerves, no judge, your own timer!)</p>
+            <div id="myRanks"></div>
+
+            <h3>Try any time</h3>
+            <div class="row">
+                <select id="calcEvent" aria-label="Event"></select>
+                <select id="calcType" aria-label="Single or average">
+                    <option value="average">Average</option>
+                    <option value="single">Single</option>
+                </select>
+                <input type="text" id="calcTime" placeholder="e.g. 25.43 or 1:05.20" aria-label="Time" style="width:12em">
+                <button class="primary" id="calcGo">Rank it</button>
+            </div>
+            <div class="calc-result" id="calcResult"></div>
+            <p class="note" id="dataNote"></p>
+        </div>
+
+        <div class="card">
+            <h2>🏅 Achievements <span id="achCount" style="font-size:0.8em;opacity:0.7"></span></h2>
+            <div class="achievements" id="achievements"></div>
+        </div>
+
+        <div class="card">
+            <h2>🔎 Look up a cuber</h2>
+            <p class="tip">Every official competitor has a WCA ID, like <b>2019WANY36</b>. Look up a friend, a
+                YouTuber or a world champion. (Search names on
+                <a href="https://www.worldcubeassociation.org/persons" target="_blank" rel="noopener">the WCA website</a> to find an ID.)</p>
+            <div class="row">
+                <input type="text" id="wcaId" placeholder="WCA ID, e.g. 2019WANY36" aria-label="WCA ID" style="width:14em">
+                <button class="primary" id="lookup">Look up</button>
+            </div>
+            <div class="person-card" id="person"></div>
+        </div>
+
+        <div class="card">
+            <h2>👑 World Top 10</h2>
+            <div class="row">
+                <select id="topEvent" aria-label="Event"></select>
+                <select id="topType" aria-label="Single or average">
+                    <option value="average">Average</option>
+                    <option value="single">Single</option>
+                </select>
+                <button id="topGo">Show</button>
+            </div>
+            <div class="table-wrap" id="top" style="margin-top:10px"></div>
+            <p class="note">Tap a name to look them up.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import "./js/nav.js";
+        import { computeProfile, ACHIEVEMENTS, RARITY, worldRank, formatTime, checkAchievements } from "./js/progress.js";
+        import { WCA_RANKS, WCA_DATA_DATE } from "./js/wca-ranks.js";
+
+        const $ = (id) => document.getElementById(id);
+        // Live WCA data: a free, daily-updated copy of the official WCA results export.
+        const WCA_API = "https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/v1/";
+
+        // ---------- Profile ----------
+        const profile = computeProfile();
+        const { stats } = profile;
+        $("level").textContent = profile.level;
+        $("title").textContent = profile.title;
+        $("xpFill").style.width = `${((profile.xp - profile.from) / (profile.to - profile.from)) * 100}%`;
+        $("xpText").textContent = `${profile.xp} XP · ${profile.to - profile.xp} XP to level ${profile.level + 1}`;
+        $("tSolves").textContent = stats.totalSolves;
+        $("tDays").textContent = stats.days;
+        $("tAlgs").textContent = stats.learnedTotal;
+        $("tAch").textContent = `${profile.unlocked.length}/${ACHIEVEMENTS.length}`;
+
+        // ---------- Achievements ----------
+        const unlockedIds = new Set(profile.unlocked.map((a) => a.id));
+        $("achCount").textContent = `(${unlockedIds.size} of ${ACHIEVEMENTS.length})`;
+        const rarityOrder = ["common", "rare", "epic", "legendary"];
+        const sorted = ACHIEVEMENTS.slice().sort((a, b) =>
+            (unlockedIds.has(b.id) - unlockedIds.has(a.id)) || (rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity)));
+        for (const a of sorted) {
+            const el = document.createElement("div");
+            const got = unlockedIds.has(a.id);
+            el.className = `ach ${a.rarity}${got ? "" : " locked"}`;
+            el.innerHTML = `<div class="icon">${got ? "🏆" : "🔒"}</div>
+                <div><div class="name"></div><div class="desc"></div>
+                <div class="rarity">${RARITY[a.rarity].label} · ${RARITY[a.rarity].xp} XP</div></div>`;
+            el.querySelector(".name").textContent = a.name;
+            el.querySelector(".desc").textContent = a.desc;
+            $("achievements").append(el);
+        }
+
+        // ---------- World rank ----------
+        // (Listed explicitly: JavaScript would otherwise sort ids like "222" before "333".)
+        const EVENT_ORDER = ["333", "222", "444", "555", "666", "777", "333oh", "333bf", "pyram", "skewb", "minx", "sq1", "clock"];
+        const EVENT_NAMES = Object.fromEntries(EVENT_ORDER.map((id) => [id, WCA_RANKS[id].name]));
+        const fmtNum = (n) => n.toLocaleString("en-US");
+
+        function rankHtml(eventId, type, ms) {
+            const r = worldRank(eventId, type, ms);
+            if (!r) return "";
+            const label = r.rank === 1
+                ? "That would be a new WORLD RECORD?! 🤯"
+                : `World rank about <b>#${fmtNum(r.rank)}</b> of ${fmtNum(r.total)} · faster than <b>${r.fasterThan.toFixed(1)}%</b> of competitors`;
+            return `<div>${label}</div>
+                <div class="meter"><div class="you" style="left:calc(${r.fasterThan}% - 2px)"></div></div>
+                <div class="meter-labels"><span>everyone</span><span>world record: ${formatTime(r.worldRecord)}</span></div>`;
+        }
+
+        function renderMyRanks() {
+            const box = $("myRanks");
+            const rows = [];
+            for (const eventId of EVENT_ORDER) {
+                const e = stats.events[eventId];
+                if (!e) continue;
+                for (const [type, ms, label] of [["average", e.bestAo5, "best average of 5"], ["single", e.bestSingle, "best single"]]) {
+                    if (!Number.isFinite(ms)) continue;
+                    rows.push(`<div class="rank-row"><div class="head"><span class="big">${EVENT_NAMES[eventId]} ${label}: ${formatTime(ms)}</span></div>
+                        ${rankHtml(eventId, type, ms)}</div>`);
+                }
+            }
+            box.innerHTML = rows.length ? rows.join("")
+                : `<p class="tip">No times yet! Do some solves on the <a href="rubiks.html">⏱ Timer</a> and your world ranking will show up here.</p>`;
+        }
+        renderMyRanks();
+
+        // Calculator
+        for (const select of [$("calcEvent"), $("topEvent")]) {
+            for (const id of EVENT_ORDER) {
+                const name = EVENT_NAMES[id];
+                const opt = document.createElement("option");
+                opt.value = id;
+                opt.textContent = name;
+                select.append(opt);
+            }
+        }
+
+        function parseTime(text) {
+            const m = /^\s*(?:(\d+):)?(\d+(?:\.\d+)?)\s*$/.exec(text);
+            if (!m) return null;
+            return ((Number(m[1] || 0) * 60) + Number(m[2])) * 1000;
+        }
+
+        function calc() {
+            const ms = parseTime($("calcTime").value);
+            if (!ms) {
+                $("calcResult").textContent = "Type a time like 25.43 or 1:05.20";
+                return;
+            }
+            $("calcResult").innerHTML = `<div class="rank-row">${rankHtml($("calcEvent").value, $("calcType").value, ms)}</div>`;
+        }
+
+        $("calcGo").addEventListener("click", calc);
+        $("calcTime").addEventListener("keydown", (e) => e.key === "Enter" && calc());
+        $("dataNote").textContent = `Rankings built from official WCA results as of ${WCA_DATA_DATE} (worked out from a sample `
+            + `of about 43,000 competitors plus every event's top 1,000; accurate to within about 1%).`;
+
+        // ---------- WCA lookups (live) ----------
+        const countryName = (() => {
+            try {
+                const names = new Intl.DisplayNames(["en"], { type: "region" });
+                return (code) => names.of(code) || code;
+            } catch {
+                return (code) => code;
+            }
+        })();
+
+        async function getJson(path, tries = 2) {
+            let res;
+            try {
+                res = await fetch(WCA_API + path);
+            } catch (err) {
+                if (tries > 1) return getJson(path, tries - 1); // flaky connection: try once more
+                throw err;
+            }
+            if (!res.ok) throw new Error(res.status === 404 ? "not found" : `error ${res.status}`);
+            return res.json();
+        }
+
+        function cell(tag, text, cls) {
+            const el = document.createElement(tag);
+            el.textContent = text;
+            if (cls) el.className = cls;
+            return el;
+        }
+
+        async function lookup(id) {
+            id = id.trim().toUpperCase();
+            const box = $("person");
+            if (!/^\d{4}[A-Z]{4}\d{2}$/.test(id)) {
+                box.innerHTML = `<div class="error">A WCA ID looks like 2019WANY36: a year, 4 letters, 2 numbers.</div>`;
+                return;
+            }
+            $("wcaId").value = id;
+            box.textContent = "Loading…";
+            let p;
+            try {
+                p = await getJson(`persons/${id}.json`);
+            } catch (err) {
+                box.innerHTML = `<div class="error">${err.message === "not found" ? "No competitor with that ID." : "Couldn't reach the WCA data. Are you online?"}</div>`;
+                return;
+            }
+            box.innerHTML = "";
+            const h = cell("h3", `${p.name} · ${countryName(p.country)}`);
+            const info = cell("p", `${p.numberOfCompetitions} competitions · 🥇 ${p.medals.gold}  🥈 ${p.medals.silver}  🥉 ${p.medals.bronze}`);
+            const records = [];
+            for (const [kind, recs] of Object.entries(p.records || {})) {
+                for (const [type, n] of Object.entries(recs || {})) records.push(`${n}× ${type} (${kind})`);
+            }
+            const rec = cell("p", records.length ? `Records: ${records.join(", ")}` : "");
+            const link = document.createElement("a");
+            link.href = `https://www.worldcubeassociation.org/persons/${encodeURIComponent(p.id)}`;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.textContent = "Official WCA profile ↗";
+
+            const table = document.createElement("table");
+            const head = document.createElement("tr");
+            for (const t of ["Event", "Single", "World rank", "Average", "World rank"]) head.append(cell("th", t));
+            table.append(head);
+            const singles = Object.fromEntries((p.rank.singles || []).map((r) => [r.eventId, r]));
+            const avgs = Object.fromEntries((p.rank.averages || []).map((r) => [r.eventId, r]));
+            for (const eventId of EVENT_ORDER) {
+                if (!singles[eventId]) continue;
+                const tr = document.createElement("tr");
+                const s = singles[eventId];
+                const a = avgs[eventId];
+                tr.append(
+                    cell("td", EVENT_NAMES[eventId]),
+                    cell("td", formatTime(s.best * 10), "num"),
+                    cell("td", "#" + fmtNum(s.rank.world), "num"),
+                    cell("td", a ? formatTime(a.best * 10) : "-", "num"),
+                    cell("td", a ? "#" + fmtNum(a.rank.world) : "-", "num"),
+                );
+                table.append(tr);
+            }
+            const wrap = document.createElement("div");
+            wrap.className = "table-wrap";
+            wrap.append(table);
+            box.append(h, info, rec, wrap, link);
+        }
+
+        $("lookup").addEventListener("click", () => lookup($("wcaId").value));
+        $("wcaId").addEventListener("keydown", (e) => e.key === "Enter" && lookup($("wcaId").value));
+
+        async function showTop() {
+            const box = $("top");
+            box.textContent = "Loading…";
+            const eventId = $("topEvent").value;
+            const type = $("topType").value;
+            try {
+                const data = await getJson(`rank/world/${type}/${eventId}.json`);
+                const top = data.items.slice(0, 10);
+                const people = await Promise.all(top.map((r) => getJson(`persons/${r.personId}.json`).catch(() => null)));
+                const table = document.createElement("table");
+                const head = document.createElement("tr");
+                for (const t of ["#", "Name", "Country", "Time"]) head.append(cell("th", t));
+                table.append(head);
+                top.forEach((r, i) => {
+                    const tr = document.createElement("tr");
+                    const nameCell = cell("td", people[i]?.name || r.personId);
+                    nameCell.style.cursor = "pointer";
+                    nameCell.style.textDecoration = "underline";
+                    nameCell.addEventListener("click", () => {
+                        lookup(r.personId);
+                        $("person").scrollIntoView({ behavior: "smooth", block: "center" });
+                    });
+                    tr.append(cell("td", r.rank.world), nameCell,
+                        cell("td", people[i] ? countryName(people[i].country) : ""), cell("td", formatTime(r.best * 10), "num"));
+                    table.append(tr);
+                });
+                box.innerHTML = "";
+                box.append(table);
+            } catch (err) {
+                console.error(err);
+                box.innerHTML = `<div class="error">Couldn't reach the WCA data. Are you online?</div>`;
+            }
+        }
+
+        $("topGo").addEventListener("click", showTop);
+        showTop();
+        checkAchievements();
+    </script>
+</body>
+</html>

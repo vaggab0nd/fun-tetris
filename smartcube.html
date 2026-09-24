@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Cube</title>
+    <link rel="stylesheet" href="css/site.css">
+    <style>
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #adb5bd;
+            flex-shrink: 0;
+        }
+
+        .dot.on { background: #2f9e44; box-shadow: 0 0 8px #2f9e44; }
+        .dot.virtual { background: #fab005; }
+
+        #mirror { height: 340px; }
+
+        .phases {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .phase {
+            text-align: center;
+            border: 2px solid #d0d4f0;
+            border-radius: 8px;
+            padding: 6px 2px;
+            background: #fff;
+            font-weight: bold;
+        }
+
+        .phase .t { font-size: 0.85em; color: #495057; min-height: 1.2em; }
+        .phase.active { border-color: #fab005; background: #fff9db; }
+        .phase.done { border-color: #2f9e44; background: #ebfbee; }
+
+        .timer {
+            text-align: center;
+            padding: 20px 10px;
+            border-radius: 12px;
+            background: #1e1e2e;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .timer .time {
+            font-size: 3.6em;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer .msg { opacity: 0.8; margin-top: 6px; min-height: 1.3em; }
+        .timer.ready .time { color: #51cf66; }
+        .timer.solving .time { color: #fff; }
+
+        .scramble {
+            font-size: 1.2em;
+            font-weight: bold;
+            line-height: 1.6;
+            word-spacing: 0.25em;
+        }
+
+        .scramble span { padding: 0 2px; border-radius: 4px; }
+        .scramble .done { color: #2f9e44; opacity: 0.55; }
+        .scramble .current { background: #fab005; color: #000; }
+        .scramble .half { background: #ffe066; color: #000; }
+
+        .undo { color: #e03131; font-weight: bold; margin-top: 6px; min-height: 1.3em; }
+
+        .result-big {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .case-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #eef0ff;
+            border: 2px solid #667eea;
+            font-weight: bold;
+            margin: 2px 4px 2px 0;
+        }
+
+        .case-tag.skip { background: #fff3bf; border-color: #fab005; }
+
+        .recon {
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+
+        .recon b { color: #764ba2; }
+
+        .keys {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .keys button { padding: 8px 0; }
+        .keys button small { display: block; font-size: 0.7em; opacity: 0.6; }
+
+        .history tr { cursor: pointer; }
+        .history tr:hover td { background: #eef0ff; }
+
+        dialog {
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            width: min(640px, calc(100vw - 20px));
+            margin: auto;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        dialog::backdrop { background: rgba(30, 30, 46, 0.6); }
+        dialog twisty-player { height: 320px; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>📡 Smart Cube</h1>
+            <nav class="site-nav" data-current="smartcube.html"></nav>
+        </header>
+
+        <p class="intro">
+            Connect a Bluetooth smart cube and every turn shows up here live. The page times your solve
+            automatically and splits it into <b>Cross → F2L → OLL → PLL</b> like the pros analyse
+            their solves. No smart cube? Use the <b>keyboard cube</b> below.
+        </p>
+
+        <div class="warn" id="loadWarn" style="display:none">
+            Couldn't load the 3D cube library (are you offline?). Tracking still works, but without the 3D view.
+        </div>
+
+        <div class="card">
+            <div class="status"><span class="dot virtual" id="dot"></span><span id="statusText">Keyboard cube</span></div>
+            <div class="row">
+                <button class="primary" id="connectGan">Connect GAN cube</button>
+                <button id="connectOther">Connect other smart cube</button>
+                <button id="disconnect" disabled>Disconnect</button>
+                <button id="resetSolved" title="Use this if the screen and your real cube don't match">My cube is solved now</button>
+            </div>
+            <p class="note" id="btNote">
+                Works in Chrome or Edge on a computer or Android (not on iPhone or iPad, where Apple blocks Bluetooth
+                in the browser). <b>GAN</b> covers GAN, MoYu AI 2023 and Monster Go AI cubes. <b>Other</b> covers GoCube,
+                Rubik's Connected, Giiker and older GAN cubes.
+            </p>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <div class="card">
+                    <twisty-player id="mirror" puzzle="3x3x3" control-panel="none" background="none"
+                        tempo-scale="3"></twisty-player>
+                    <div class="phases">
+                        <div class="phase" id="ph-cross">Cross<div class="t"></div></div>
+                        <div class="phase" id="ph-f2l">F2L<div class="t"></div></div>
+                        <div class="phase" id="ph-oll">OLL<div class="t"></div></div>
+                        <div class="phase" id="ph-pll">PLL<div class="t"></div></div>
+                    </div>
+                </div>
+                <div class="card" id="keyboardCard">
+                    <h2>⌨️ Keyboard cube</h2>
+                    <p class="tip">Turn the cube with your keyboard (same keys as csTimer) or tap the buttons.</p>
+                    <div class="keys" id="keys"></div>
+                </div>
+            </div>
+            <div>
+                <div class="timer" id="timer">
+                    <div class="time" id="time">0.00</div>
+                    <div class="msg" id="timerMsg">Do the scramble below</div>
+                </div>
+                <div class="card">
+                    <h2>Scramble</h2>
+                    <div class="scramble" id="scramble">Generating…</div>
+                    <div class="undo" id="undo"></div>
+                    <div class="row" style="margin-top:8px">
+                        <button id="newScramble">New scramble</button>
+                        <button id="startAnyway" title="Already scrambled it your own way? Start from here.">I scrambled it myself</button>
+                    </div>
+                    <p class="note">Follow the scramble on your cube. Moves turn green as you do them. When it's
+                        scrambled, the timer starts on your first turn and stops when the cube is solved.</p>
+                </div>
+                <div class="card" id="resultCard" style="display:none">
+                    <h2>Last solve</h2>
+                    <div id="result"></div>
+                    <div class="row" style="margin-top:10px">
+                        <button class="primary" id="replayLast">▶ Replay solve</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>History</h2>
+            <div id="summary" class="row" style="margin-bottom:8px"></div>
+            <div class="table-wrap">
+            <table class="history">
+                <thead>
+                    <tr><th>#</th><th class="num">Time</th><th class="num">Moves</th><th class="num">TPS</th>
+                        <th class="num">Cross</th><th class="num">F2L</th><th class="num">OLL</th><th class="num">PLL</th><th>Cases</th></tr>
+                </thead>
+                <tbody id="history"></tbody>
+            </table>
+            </div>
+            <p class="note">Tap a solve to replay it. Solves here also count on the 🏆 Trophies page.</p>
+        </div>
+    </div>
+
+    <dialog id="replayDialog">
+        <div class="row" style="justify-content:space-between">
+            <h2 id="replayTitle">Replay</h2>
+            <button id="replayClose" aria-label="Close">✕</button>
+        </div>
+        <twisty-player id="replayPlayer" puzzle="3x3x3" background="none"></twisty-player>
+        <div class="recon" id="replayRecon"></div>
+    </dialog>
+
+    <script type="module">
+        import "./js/nav.js";
+        import { Cube, normalOf, rotationToBottom, identifyLastLayer, simplifyMoves, invertMoves, splitAlg,
+            randomMoveScramble, faceletsToPattern, parseMove, SOLVED } from "./js/cube-engine.js";
+        import { OLL_ALGS, PLL_ALGS, OLL_NICKNAMES } from "./js/cube-algs.js";
+        import { checkAchievements, formatTime, bestAverage } from "./js/progress.js";
+
+        const CUBING = "https://cdn.cubing.net/v0/js/cubing/";
+        const GAN_LIB = "https://cdn.jsdelivr.net/npm/gan-web-bluetooth@3.0.2/+esm";
+        const $ = (id) => document.getElementById(id);
+
+        let randomScrambleForEvent = null;
+        let hasTwisty = false;
+        try {
+            const [scrambleMod] = await Promise.all([import(CUBING + "scramble"), import(CUBING + "twisty")]);
+            randomScrambleForEvent = scrambleMod.randomScrambleForEvent;
+            hasTwisty = true;
+        } catch (err) {
+            console.error("cubing.js failed to load", err);
+            $("loadWarn").style.display = "block";
+        }
+
+        const mirror = $("mirror");
+
+        // ---------- Tracking the real cube ----------
+        let tracked = new Cube();   // what we think the real cube looks like
+        let sinceSolved = [];       // moves done since it was last solved (used to replay a solve)
+
+        function resetMirror(setupMoves) {
+            if (!hasTwisty) return;
+            mirror.experimentalSetupAlg = setupMoves.join(" ");
+            mirror.alg = "";
+        }
+
+        // ---------- Scramble tracking ----------
+        let scramble = [];       // e.g. ["R", "U2", "F'"]
+        let scrambleIndex = 0;   // next scramble move to do
+        let partial = 0;         // quarter turns done so far on the current scramble move's face
+        let mistakes = [];       // wrong moves to undo, e.g. [{face: "R", q: 1}]
+        let target = null;       // cube state once the scramble is done
+
+        const quarters = (token) => {
+            const { amount } = parseMove(token);
+            return ((amount % 4) + 4) % 4;
+        };
+        const faceOf = (token) => parseMove(token).family;
+        const moveName = (face, q) => face + ["", "", "2", "'"][q];
+
+        function trackScramble(move) {
+            const face = faceOf(move);
+            const q = quarters(move);
+            if (!/^[RLUDFB]$/.test(face)) return; // rotations don't change the scramble
+            if (mistakes.length) {
+                const last = mistakes[mistakes.length - 1];
+                if (last.face === face) {
+                    last.q = (last.q + q) % 4;
+                    if (last.q === 0) mistakes.pop();
+                } else {
+                    mistakes.push({ face, q });
+                }
+                return;
+            }
+            if (scrambleIndex >= scramble.length) {
+                mistakes.push({ face, q });
+                return;
+            }
+            const want = scramble[scrambleIndex];
+            const wantQ = quarters(want);
+            if (face === faceOf(want)) {
+                partial = (partial + q) % 4;
+                if (partial === wantQ) {
+                    scrambleIndex++;
+                    partial = 0;
+                } else if (wantQ === 2 && partial !== 0) {
+                    // halfway through a double turn - keep going
+                } else if (partial !== 0) {
+                    mistakes.push({ face, q: (partial - wantQ + 4) % 4 });
+                    scrambleIndex++;
+                    partial = 0;
+                }
+            } else {
+                if (partial) mistakes.push({ face: faceOf(want), q: partial });
+                partial = 0;
+                mistakes.push({ face, q });
+            }
+        }
+
+        function renderScramble() {
+            const box = $("scramble");
+            box.innerHTML = "";
+            scramble.forEach((m, i) => {
+                const span = document.createElement("span");
+                span.textContent = m;
+                if (i < scrambleIndex) span.className = "done";
+                else if (i === scrambleIndex && phase === "scrambling") span.className = partial ? "half" : "current";
+                box.append(span, " ");
+            });
+            $("undo").textContent = mistakes.length
+                ? "Oops! Undo with: " + mistakes.slice().reverse().map((m) => moveName(m.face, (4 - m.q) % 4)).join(" ")
+                : "";
+        }
+
+        async function newScramble(keepResult = false) {
+            $("scramble").textContent = "Generating…";
+            let text;
+            try {
+                text = randomScrambleForEvent ? (await randomScrambleForEvent("333")).toString() : randomMoveScramble();
+            } catch {
+                text = randomMoveScramble();
+            }
+            scramble = text.split(" ");
+            scrambleIndex = 0;
+            partial = 0;
+            mistakes = [];
+            target = tracked.clone().apply(scramble).toString();
+            setPhase("scrambling", keepResult);
+            renderScramble();
+        }
+
+        // ---------- Solve state ----------
+        let phase = "scrambling"; // scrambling | ready | solving
+        let solve = null;
+        let frame = null;
+
+        function setPhase(p, keepResult = false) {
+            phase = p;
+            $("timer").className = "timer " + p;
+            if (p === "scrambling") {
+                // Right after a solve, leave the time and splits up until the next scramble is done.
+                if (!keepResult) $("timerMsg").textContent = "Do the scramble below";
+            } else if (p === "ready") {
+                $("timerMsg").textContent = "Scrambled! The timer starts on your first turn";
+                $("time").textContent = "0.00";
+                clearPhases();
+            } else if (p === "solving") {
+                $("timerMsg").textContent = "Solving… stops automatically when solved";
+            }
+        }
+
+        function clearPhases() {
+            for (const id of ["cross", "f2l", "oll", "pll"]) {
+                $("ph-" + id).className = "phase";
+                $("ph-" + id).querySelector(".t").textContent = "";
+            }
+        }
+
+        function startSolve(t) {
+            solve = {
+                start: t,
+                setup: simplifyMoves(sinceSolved),
+                moves: [],
+                cross: null, f2l: null, oll: null,
+                crossFace: null, f2lState: null, ollState: null,
+            };
+            setPhase("solving");
+            $("ph-cross").classList.add("active");
+            cancelAnimationFrame(frame);
+            const tick = () => {
+                if (phase !== "solving") return;
+                $("time").textContent = formatTime(performance.now() - solve.start);
+                frame = requestAnimationFrame(tick);
+            };
+            tick();
+        }
+
+        function markPhase(id, since, t) {
+            const el = $("ph-" + id);
+            el.className = "phase done";
+            el.querySelector(".t").textContent = formatTime(t - since);
+            const next = { cross: "f2l", f2l: "oll", oll: "pll" }[id];
+            if (next) $("ph-" + next).classList.add("active");
+        }
+
+        function checkPhases(t) {
+            const n = solve.moves.length;
+            if (!solve.cross) {
+                const face = tracked.solvedCrossFace();
+                if (face) {
+                    solve.crossFace = face;
+                    solve.cross = { t, n };
+                    markPhase("cross", solve.start, t);
+                }
+            }
+            const down = solve.crossFace && normalOf(solve.crossFace);
+            if (solve.cross && !solve.f2l && tracked.f2lSolved(down)) {
+                solve.f2l = { t, n };
+                solve.f2lState = tracked.clone();
+                markPhase("f2l", solve.cross.t, t);
+            }
+            if (solve.f2l && !solve.oll && tracked.ollSolved(down)) {
+                solve.oll = { t, n };
+                solve.ollState = tracked.clone();
+                markPhase("oll", solve.f2l.t, t);
+            }
+        }
+
+        function nameCase(state, cases, kind) {
+            const onBottom = state.clone().apply(rotationToBottom(solve.crossFace));
+            const found = identifyLastLayer(onBottom, cases, kind);
+            if (!found) return null;
+            return kind === "oll"
+                ? `OLL ${found.name}` + (OLL_NICKNAMES[found.name] ? ` · ${OLL_NICKNAMES[found.name]}` : "")
+                : `${found.name}-Perm`;
+        }
+
+        function finishSolve(t) {
+            cancelAnimationFrame(frame);
+            markPhase("pll", solve.oll.t, t);
+            const moves = solve.moves;
+            const ms = t - solve.start;
+            const phaseMoves = (a, b) => b - a;
+            const record = {
+                date: Date.now(),
+                ms,
+                moveCount: moves.length,
+                tps: moves.length / Math.max(ms / 1000, 0.001),
+                split: {
+                    cross: solve.cross.t - solve.start,
+                    f2l: solve.f2l.t - solve.cross.t,
+                    oll: solve.oll.t - solve.f2l.t,
+                    pll: t - solve.oll.t,
+                },
+                splitMoves: {
+                    cross: solve.cross.n,
+                    f2l: phaseMoves(solve.cross.n, solve.f2l.n),
+                    oll: phaseMoves(solve.f2l.n, solve.oll.n),
+                    pll: phaseMoves(solve.oll.n, moves.length),
+                },
+                crossMoves: solve.cross.n,
+                crossFace: solve.crossFace,
+                ollSkip: solve.oll.n === solve.f2l.n,
+                pllSkip: solve.oll.n === moves.length,
+                ollCase: null,
+                pllCase: null,
+                setup: solve.setup.join(" "),
+                solution: moves.map((m) => m.m).join(" "),
+            };
+            if (!record.ollSkip) record.ollCase = nameCase(solve.f2lState, OLL_ALGS, "oll");
+            if (!record.pllSkip) record.pllCase = nameCase(solve.ollState, PLL_ALGS, "pll");
+
+            $("time").textContent = formatTime(ms);
+            $("timerMsg").textContent = "Solved! 🎉 Do the next scramble to go again";
+            saveSolve(record);
+            showResult(record);
+            renderHistory();
+            checkAchievements();
+            solve = null;
+            sinceSolved = [];
+            newScramble(true);
+        }
+
+        // ---------- Every move from any source ends up here ----------
+        function onMove(move, t = performance.now()) {
+            try {
+                parseMove(move);
+            } catch {
+                return; // ignore anything we don't understand
+            }
+            if (phase === "ready") startSolve(t);
+            tracked.move(move);
+            if (hasTwisty) {
+                try {
+                    mirror.experimentalAddMove(move);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            if (phase === "solving") {
+                solve.moves.push({ m: move, t });
+                checkPhases(t);
+                if (tracked.isSolved()) finishSolve(t);
+                return;
+            }
+            sinceSolved.push(move);
+            if (tracked.isSolved()) sinceSolved = [];
+            trackScramble(move);
+            if (target && tracked.toString() === target) {
+                mistakes = [];
+                scrambleIndex = scramble.length;
+                setPhase("ready");
+            }
+            renderScramble();
+        }
+
+        // The cube is solved right now (fixes things if the screen got out of step with the real cube).
+        function markSolved() {
+            tracked = new Cube();
+            sinceSolved = [];
+            resetMirror([]);
+            if (conn?.kind === "gan") conn.api.sendCubeCommand({ type: "REQUEST_RESET" }).catch(() => {});
+            newScramble();
+        }
+
+        $("resetSolved").addEventListener("click", markSolved);
+        $("newScramble").addEventListener("click", () => {
+            if (phase !== "solving") newScramble();
+        });
+        $("startAnyway").addEventListener("click", () => {
+            if (phase === "solving" || tracked.isSolved()) return;
+            mistakes = [];
+            scrambleIndex = scramble.length;
+            setPhase("ready");
+            renderScramble();
+        });
+
+        // ---------- Saving and showing solves ----------
+        const STORE = "cubeLabSmartSolves";
+        let history = [];
+        try {
+            history = JSON.parse(localStorage.getItem(STORE)) || [];
+        } catch {
+            history = [];
+        }
+
+        function saveSolve(record) {
+            history.push(record);
+            if (history.length > 500) history = history.slice(-500);
+            try {
+                localStorage.setItem(STORE, JSON.stringify(history));
+            } catch {
+                // Storage unavailable - the solve still shows for this visit.
+            }
+        }
+
+        const tag = (text, skip) => `<span class="case-tag${skip ? " skip" : ""}">${text}</span>`;
+
+        function caseTags(r) {
+            return (r.ollSkip ? tag("OLL skip! 🎉", true) : r.ollCase ? tag(r.ollCase) : "")
+                + (r.pllSkip ? tag("PLL skip! 🎉", true) : r.pllCase ? tag(r.pllCase) : "");
+        }
+
+        function showResult(r) {
+            $("resultCard").style.display = "";
+            const rows = ["cross", "f2l", "oll", "pll"].map((p) => {
+                const secs = r.split[p] / 1000;
+                const tps = secs > 0 ? (r.splitMoves[p] / secs).toFixed(1) : "-";
+                return `<tr><td>${p.toUpperCase()}</td><td class="num">${formatTime(r.split[p])}</td>
+                    <td class="num">${r.splitMoves[p]}</td><td class="num">${tps}</td></tr>`;
+            }).join("");
+            $("result").innerHTML = `
+                <div class="result-big"><b>${formatTime(r.ms)}</b> · ${r.moveCount} moves · ${r.tps.toFixed(2)} TPS</div>
+                <div>${caseTags(r)}</div>
+                <table style="margin-top:8px">
+                    <thead><tr><th>Step</th><th class="num">Time</th><th class="num">Moves</th><th class="num">TPS</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+            $("replayLast").onclick = () => openReplay(r);
+        }
+
+        function renderHistory() {
+            const body = $("history");
+            body.innerHTML = "";
+            history.slice().reverse().slice(0, 25).forEach((r, i) => {
+                const tr = document.createElement("tr");
+                const cells = [
+                    history.length - i,
+                    formatTime(r.ms), r.moveCount, r.tps.toFixed(2),
+                    formatTime(r.split.cross), formatTime(r.split.f2l), formatTime(r.split.oll), formatTime(r.split.pll),
+                ];
+                tr.innerHTML = cells.map((c, j) => `<td class="${j ? "num" : ""}">${c}</td>`).join("")
+                    + `<td>${r.ollSkip ? "OLL skip" : (r.ollCase || "").replace(/ ·.*/, "")}${r.pllSkip ? " · PLL skip" : r.pllCase ? " · " + r.pllCase : ""}</td>`;
+                tr.addEventListener("click", () => openReplay(r));
+                body.append(tr);
+            });
+
+            const summary = $("summary");
+            if (!history.length) {
+                summary.textContent = "No solves yet.";
+                return;
+            }
+            const asTimes = history.map((r) => ({ ms: r.ms, penalty: null }));
+            const last12 = history.slice(-12);
+            const mean = (key) => last12.reduce((s, r) => s + r.split[key], 0) / last12.length;
+            summary.innerHTML = `
+                <span><b>Best:</b> ${formatTime(Math.min(...history.map((r) => r.ms)))}</span>
+                <span><b>Best ao5:</b> ${formatTime(bestAverage(asTimes, 5))}</span>
+                <span><b>Avg splits (last ${last12.length}):</b> cross ${formatTime(mean("cross"))} ·
+                    F2L ${formatTime(mean("f2l"))} · OLL ${formatTime(mean("oll"))} · PLL ${formatTime(mean("pll"))}</span>`;
+        }
+
+        // ---------- Replay ----------
+        const replayPlayer = $("replayPlayer");
+
+        function openReplay(r) {
+            $("replayTitle").textContent = `Replay: ${formatTime(r.ms)} (${r.moveCount} moves)`;
+            if (hasTwisty) {
+                replayPlayer.experimentalSetupAlg = r.setup;
+                replayPlayer.alg = r.solution;
+                replayPlayer.jumpToStart();
+            }
+            const moves = r.solution.split(" ");
+            const m = r.splitMoves;
+            const part = (label, from, to, extra) =>
+                `<div><b>${label}</b> (${to - from} moves${extra ? ", " + extra : ""}): ${moves.slice(from, to).join(" ") || "-"}</div>`;
+            const a = m.cross;
+            const b = a + m.f2l;
+            const c = b + m.oll;
+            $("replayRecon").innerHTML =
+                `<div><b>Scramble state</b>: ${r.setup || "(solved)"}</div>`
+                + part("Cross", 0, a, `on ${faceName(r.crossFace)}`)
+                + part("F2L", a, b)
+                + part("OLL", b, c, r.ollSkip ? "skip!" : r.ollCase)
+                + part("PLL", c, moves.length, r.pllSkip ? "skip!" : r.pllCase);
+            $("replayDialog").showModal();
+            if (hasTwisty) setTimeout(() => replayPlayer.play(), 400);
+        }
+
+        function faceName(face) {
+            return { U: "top", D: "bottom", F: "front", B: "back", R: "right", L: "left" }[face] || "?";
+        }
+
+        $("replayClose").addEventListener("click", () => $("replayDialog").close());
+        $("replayDialog").addEventListener("close", () => hasTwisty && replayPlayer.pause());
+
+        // ---------- Keyboard cube ----------
+        // Same layout as csTimer's virtual cube.
+        const KEYS = {
+            i: "R", k: "R'", j: "U", f: "U'", h: "F", g: "F'",
+            d: "L", e: "L'", s: "D", l: "D'", w: "B", o: "B'",
+            ";": "y", a: "y'", t: "x", b: "x'", p: "z", q: "z'",
+        };
+
+        for (const [key, move] of Object.entries(KEYS)) {
+            const btn = document.createElement("button");
+            btn.innerHTML = `${move}<small>${key.toUpperCase()}</small>`;
+            btn.addEventListener("click", () => onMove(move));
+            $("keys").append(btn);
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+            if (e.target.matches("input, select, textarea") || $("replayDialog").open) return;
+            const move = KEYS[e.key.toLowerCase()];
+            if (move) {
+                e.preventDefault();
+                onMove(move);
+            }
+        });
+
+        // ---------- Bluetooth ----------
+        let conn = null; // { kind: "gan" | "cubing", api }
+
+        function setStatus(text, state) {
+            $("statusText").textContent = text;
+            $("dot").className = "dot " + (state || "");
+            $("disconnect").disabled = !conn;
+        }
+
+        if (!navigator.bluetooth) {
+            $("connectGan").disabled = true;
+            $("connectOther").disabled = true;
+            $("btNote").innerHTML = "This browser can't use Bluetooth. Use <b>Chrome or Edge</b> on a computer or Android " +
+                "phone to connect a smart cube. The keyboard cube works everywhere.";
+        }
+
+        // A GAN cube tells us exactly how it looks, so we can sync even if it isn't solved.
+        async function syncFromFacelets(facelets) {
+            if (facelets === tracked.toString()) return;
+            tracked = new Cube(facelets);
+            sinceSolved = [];
+            if (facelets === SOLVED) {
+                resetMirror([]);
+            } else {
+                try {
+                    const solution = await solveFacelets(facelets);
+                    sinceSolved = invertMoves(solution);
+                    resetMirror(sinceSolved);
+                } catch (err) {
+                    console.error(err);
+                    setStatus("Connected, but couldn't read the cube. Solve it and press 'My cube is solved now'", "on");
+                }
+            }
+            newScramble();
+        }
+
+        async function solveFacelets(facelets) {
+            const { pieces, errors } = faceletsToPattern(facelets);
+            if (errors) throw new Error(errors[0]);
+            const [{ cube3x3x3 }, { KPattern }, { experimentalSolve3x3x3IgnoringCenters }] = await Promise.all([
+                import(CUBING + "puzzles"), import(CUBING + "kpuzzle"), import(CUBING + "search"),
+            ]);
+            const kpuzzle = await cube3x3x3.kpuzzle();
+            const alg = await experimentalSolve3x3x3IgnoringCenters(new KPattern(kpuzzle, pieces));
+            return splitAlg(alg.toString());
+        }
+
+        $("connectGan").addEventListener("click", async () => {
+            try {
+                setStatus("Connecting… pick your cube in the pop-up");
+                const { connectGanCube } = await import(GAN_LIB);
+                const api = await connectGanCube(async (device, isFallbackCall) => {
+                    if (!isFallbackCall) return null; // let the library find the address itself first
+                    return prompt("Your browser couldn't read the cube's address automatically.\n" +
+                        "Type the cube's MAC address (shown in the GAN app, like AB:12:CD:34:EF:56):");
+                });
+                conn = { kind: "gan", api };
+                setStatus(`Connected: ${api.deviceName}`, "on");
+                api.events$.subscribe((event) => {
+                    if (event.type === "MOVE") onMove(event.move);
+                    else if (event.type === "FACELETS" && phase !== "solving") syncFromFacelets(event.facelets);
+                    else if (event.type === "BATTERY") setStatus(`Connected: ${api.deviceName} · battery ${event.batteryLevel}%`, "on");
+                    else if (event.type === "DISCONNECT") {
+                        conn = null;
+                        setStatus("Disconnected - using keyboard cube", "virtual");
+                    }
+                });
+                await api.sendCubeCommand({ type: "REQUEST_FACELETS" });
+                await api.sendCubeCommand({ type: "REQUEST_BATTERY" });
+            } catch (err) {
+                console.error(err);
+                conn = null;
+                setStatus(`Couldn't connect (${err.message || err}). Using keyboard cube.`, "virtual");
+            }
+        });
+
+        $("connectOther").addEventListener("click", async () => {
+            try {
+                setStatus("Connecting… pick your cube in the pop-up");
+                const { connectSmartPuzzle } = await import(CUBING + "bluetooth");
+                const api = await connectSmartPuzzle();
+                conn = { kind: "cubing", api };
+                api.addAlgLeafListener((e) => onMove(e.latestAlgLeaf.toString()));
+                setStatus(`Connected: ${api.name() || "smart cube"} - if your cube isn't solved, solve it and press "My cube is solved now"`, "on");
+                markSolved();
+            } catch (err) {
+                console.error(err);
+                conn = null;
+                setStatus(`Couldn't connect (${err.message || err}). Using keyboard cube.`, "virtual");
+            }
+        });
+
+        $("disconnect").addEventListener("click", async () => {
+            try {
+                if (conn?.kind === "gan") await conn.api.disconnect();
+                else conn?.api.disconnect();
+            } catch (err) {
+                console.error(err);
+            }
+            conn = null;
+            setStatus("Keyboard cube", "virtual");
+        });
+
+        // ---------- Start ----------
+        renderHistory();
+        if (history.length) showResult(history[history.length - 1]);
+        checkAchievements();
+        newScramble();
+
+        // For automated tests: lets a test feed moves in like a smart cube would.
+        window.cubeLabTestHook = { onMove, syncFromFacelets, get tracked() { return tracked.toString(); }, get phase() { return phase; } };
+    </script>
+</body>
+</html>
