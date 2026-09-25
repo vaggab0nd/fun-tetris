@@ -11,7 +11,7 @@ Web pages for Rubik's cube speedsolving, built on [cubing.js](https://js.cubing.
 | 🤖 [`solver.html`](solver.html) **Solver** | Scan a real cube with the camera (or paint it in) and get a ~20 move solution to follow |
 | 🏆 [`trophies.html`](trophies.html) **Trophies** | XP, levels, achievements, world ranking against real WCA results, look up any competitor |
 
-All pages share a top menu, so you can jump between them (and back to Tetris).
+The home page (`index.html`) has a big button for each one, and every page shares the same menu at the top.
 
 ## Running it
 
