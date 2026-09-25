@@ -7,7 +7,8 @@ or host the repo on GitHub Pages.
 
 | Page / tool | What it is | Docs |
 |---|---|---|
-| 🎮 `index.html` | Tetris in the browser, works on phones | This README |
+| 🏠 `index.html` | **Home page**: big buttons for every page below | - |
+| 🎮 `tetris.html` | Tetris in the browser, works on phones | This README |
 | 🐍 `tetris.py` | Tetris in the terminal (Python) | This README |
 | ⏱ `rubiks.html` | **Cube Lab**: speedcubing timer with WCA-style scrambles, plus a notation trainer | [CUBE_LAB.md](CUBE_LAB.md) |
 | 📚 `algorithms.html` | **Alg Trainer**: learn 2-Look, OLL and PLL, track progress, drill recognition | [CUBE_LAB.md](CUBE_LAB.md) |
@@ -16,8 +17,8 @@ or host the repo on GitHub Pages.
 | 🏆 `trophies.html` | **Trophies**: XP, achievements, world ranking vs real WCA results | [CUBE_LAB.md](CUBE_LAB.md) |
 | 🎵 `spotify-to-apple-music/` | Converts Spotify playlist exports to Apple Music playlists (Node.js) | [its CLAUDE.md](spotify-to-apple-music/CLAUDE.md) |
 
-The web pages link to each other: the Tetris page links to Cube Lab, and all the cube pages share
-a top menu (Timer · Alg Trainer · Smart Cube · Solver · Trophies · Tetris).
+Start at the home page (`index.html`, the site's front page on GitHub Pages). Every cube page has the same
+big menu at the top (Home · Timer · Alg Trainer · Smart Cube · Solver · Trophies · Tetris).
 
 ---
 
@@ -34,7 +35,7 @@ game development concepts!
 - Keyboard controls (A/D/W/S/Space)
 - Great for learning Python and terminal programming
 
-### 🌐 Web Version (`index.html`)
+### 🌐 Web Version (`tetris.html`)
 - Play in any browser (Chrome, Safari, Firefox, etc.)
 - Mobile-friendly with touch controls
 - Beautiful gradient UI with responsive design
@@ -56,7 +57,7 @@ game development concepts!
 ### Web Version (Easiest - Works on Phone!)
 
 1. **Option 1: Open Locally**
-   - Simply open `index.html` in any web browser
+   - Simply open `index.html` (the home page) or `tetris.html` in any web browser
    - Double-click the file or drag it into your browser
 
 2. **Option 2: Host on GitHub Pages (Play from Anywhere!)**
@@ -66,7 +67,7 @@ game development concepts!
    - Access from `https://yourusername.github.io/fun-tetris/`
 
 3. **Option 3: Deploy to Lovable or Any Static Host**
-   - Upload `index.html` to any static hosting service
+   - Upload the whole folder to any static hosting service
    - Works on Netlify, Vercel, Lovable, etc.
 
 4. **Option 4: Local Server**
@@ -112,7 +113,7 @@ This implementation demonstrates several programming concepts:
 5. **Terminal Control**: ANSI color codes and screen clearing
 6. **Input Handling**: Non-blocking keyboard input with termios
 
-### Web Version (`index.html`)
+### Web Version (`tetris.html`)
 1. **HTML5 Canvas**: Drawing graphics in the browser
 2. **JavaScript Game Loop**: Using `requestAnimationFrame` for smooth animation
 3. **Event Handling**: Keyboard and touch event listeners
