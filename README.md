@@ -8,6 +8,7 @@ or host the repo on GitHub Pages.
 | Page / tool | What it is | Docs |
 |---|---|---|
 | 🏠 `index.html` | **Home page**: big buttons for every page below | - |
+| ❓ `help.html` | **Help**: how every page works, a glossary of cube words, troubleshooting | - |
 | 🎮 `tetris.html` | Tetris in the browser, works on phones | This README |
 | 🐍 `tetris.py` | Tetris in the terminal (Python) | This README |
 | ⏱ `rubiks.html` | **Cube Lab**: speedcubing timer with WCA-style scrambles, plus a notation trainer | [CUBE_LAB.md](CUBE_LAB.md) |
@@ -18,7 +19,8 @@ or host the repo on GitHub Pages.
 | 🎵 `spotify-to-apple-music/` | Converts Spotify playlist exports to Apple Music playlists (Node.js) | [its CLAUDE.md](spotify-to-apple-music/CLAUDE.md) |
 
 Start at the home page (`index.html`, the site's front page on GitHub Pages). Every cube page has the same
-big menu at the top (Home · Timer · Alg Trainer · Smart Cube · Solver · Trophies · Tetris).
+big menu at the top (Home · Timer · Alg Trainer · Smart Cube · Solver · Trophies · Help · Tetris),
+plus a "❓ How does this page work?" link to that page's help.
 
 ---
 

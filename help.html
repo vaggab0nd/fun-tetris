@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help</title>
+    <link rel="stylesheet" href="css/site.css">
+    <style>
+        html { scroll-behavior: smooth; }
+
+        .contents {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .contents a {
+            padding: 6px 10px;
+            border-radius: 16px;
+            background: #fff;
+            border: 2px solid #b8b2e6;
+            color: #5a3d8a;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .contents a:hover { border-color: #764ba2; }
+
+        section.card { scroll-margin-top: 10px; }
+        section.card:target { border-color: #fab005; box-shadow: 0 0 0 3px #ffe066; }
+
+        section h2 { font-size: 1.3em; }
+
+        section ul, section ol { margin: 6px 0 10px 22px; line-height: 1.5; }
+        section li { margin-bottom: 4px; }
+        section p { line-height: 1.5; margin-bottom: 8px; }
+
+        .btn-name {
+            display: inline-block;
+            padding: 0 6px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            background: #fff;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        kbd {
+            display: inline-block;
+            min-width: 1.6em;
+            text-align: center;
+            padding: 0 5px;
+            border: 1px solid #adb5bd;
+            border-bottom-width: 3px;
+            border-radius: 4px;
+            background: #fff;
+            font-family: inherit;
+            font-weight: bold;
+        }
+
+        .open-link {
+            display: inline-block;
+            margin-top: 4px;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .glossary dt { font-weight: bold; color: #764ba2; margin-top: 8px; }
+        .glossary dd { margin-left: 0; line-height: 1.45; }
+
+        .qa h3 { margin-top: 14px; }
+
+        .keys-table td:first-child { white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>❓ Help</h1>
+            <nav class="site-nav" data-current="help.html"></nav>
+        </header>
+
+        <p class="intro">Stuck? Find the page you're on below. Words you don't know are in the
+            <a href="#glossary">Glossary</a>, and fixes for common problems are in
+            <a href="#trouble">Troubleshooting</a>.</p>
+
+        <nav class="contents" aria-label="Help sections">
+            <a href="#start">🚀 Getting started</a>
+            <a href="#timer">⏱ Timer</a>
+            <a href="#algs">📚 Alg Trainer</a>
+            <a href="#smart">📡 Smart Cube</a>
+            <a href="#solver">🤖 Solver</a>
+            <a href="#trophies">🏆 Trophies</a>
+            <a href="#glossary">📖 Glossary</a>
+            <a href="#trouble">🛠 Troubleshooting</a>
+        </nav>
+
+        <!-- ================= GETTING STARTED ================= -->
+        <section class="card" id="start">
+            <h2>🚀 Getting started</h2>
+            <p>New here? This order works well:</p>
+            <ol>
+                <li><b>Learn the notation.</b> Go to <a href="rubiks.html">⏱ Timer</a> → <span class="btn-name">🔤 Notation</span> and
+                    play <b>Name that move!</b> until you can read moves like <b>R U R' U'</b>.</li>
+                <li><b>Time some solves.</b> Use the <span class="btn-name">⏱ Timer</span> tab. Your times are saved automatically.</li>
+                <li><b>Learn 2-Look.</b> In the <a href="algorithms.html">📚 Alg Trainer</a>, start with the
+                    <span class="btn-name">🌱 2-Look</span> tab: just 16 algorithms to finish the last layer.</li>
+                <li><b>Then PLL, then OLL.</b> Learn the 21 PLLs first (they save the most time), then the 57 OLLs.</li>
+                <li><b>Check your progress.</b> <a href="trophies.html">🏆 Trophies</a> shows your level, your
+                    achievements and how you rank against the world.</li>
+            </ol>
+            <p>Just want to have fun? Try the <a href="solver.html">🤖 Solver</a>: scramble your cube and let the computer solve it.</p>
+            <p class="note">Everything is saved in this browser on this device. Nothing is sent anywhere, and there's no account.</p>
+        </section>
+
+        <!-- ================= TIMER ================= -->
+        <section class="card" id="timer">
+            <h2>⏱ Timer &amp; Notation</h2>
+            <h3>Timing a solve</h3>
+            <ol>
+                <li>Pick your puzzle in <b>Event</b> (3x3, 2x2, 4x4, Pyraminx or Skewb).</li>
+                <li>Scramble your cube with the moves shown. The picture shows what it should look like.
+                    <span class="btn-name">Show 3D</span> switches to a 3D view.</li>
+                <li>Press <kbd>Space</kbd> once (or tap the black timer) to start the <b>15-second inspection</b>.
+                    Look at your cube and plan your cross.</li>
+                <li><b>Hold</b> <kbd>Space</kbd> (or keep your finger on the timer). The time turns red, then
+                    <b style="color:#2f9e44">green</b>. Let go when it's green and the timer starts.</li>
+                <li>Press <b>any key</b> (or tap anywhere) to stop.</li>
+            </ol>
+            <ul>
+                <li>Don't want inspection? Untick <b>15s inspection</b>. Then just hold and let go.</li>
+                <li>Inspection over 15 seconds adds <b>+2</b> seconds, and over 17 seconds is a <b>DNF</b>, like at a competition.
+                    <kbd>Esc</kbd> cancels inspection.</li>
+                <li>Each solve in the list has <span class="btn-name">+2</span>, <span class="btn-name">DNF</span> and
+                    <span class="btn-name">✕</span> (delete) buttons, in case you messed up.</li>
+                <li>On a computer, point at a solve to see its scramble.</li>
+            </ul>
+            <h3>The stats</h3>
+            <ul>
+                <li><b>Best</b>: your fastest single solve.</li>
+                <li><b>ao5</b>: take your last 5 solves, remove the fastest and slowest, and average the other 3.
+                    That's how official averages work.</li>
+                <li><b>ao12</b>: the same with 12 solves.</li>
+            </ul>
+            <h3>Notation tab</h3>
+            <ul>
+                <li><b>Try the moves</b>: press the buttons and watch the cube turn. Drag the cube to see the back.</li>
+                <li><b>Name that move!</b>: the cube does one move and you pick which one. Build up a streak!
+                    Start on Easy (R, U, F), then try Hard.</li>
+                <li><b>Algorithm playground</b>: type any algorithm and press <span class="btn-name">Play</span>.</li>
+            </ul>
+            <a class="open-link" href="rubiks.html">Open the Timer →</a>
+        </section>
+
+        <!-- ================= ALG TRAINER ================= -->
+        <section class="card" id="algs">
+            <h2>📚 Alg Trainer</h2>
+            <ul>
+                <li><b>Tabs:</b> <span class="btn-name">🌱 2-Look</span> is the beginner set (start here),
+                    <span class="btn-name">🟡 OLL (57)</span> and <span class="btn-name">🔄 PLL (21)</span> are the full sets,
+                    and <span class="btn-name">🎯 Drill</span> tests you.</li>
+                <li><b>Tap a card</b> to watch its algorithm on a 3D cube. It also shows moves that set the case up on your
+                    real cube: start solved, do those moves, and you're looking at that case.</li>
+                <li><b>Tap the badge</b> on a card (<i>Not started</i>) to mark it <b>Learning</b>, then tap again for
+                    <b>Learned ✓</b>. The bars at the top show your progress.</li>
+                <li>Use <b>Show</b> to list only the cases you're learning, or the ones you haven't started.</li>
+                <li>In the pictures, <b>white is the top colour</b>. It works exactly the same with yellow on top.</li>
+            </ul>
+            <h3>The Drill</h3>
+            <ol>
+                <li>Choose what to practise. <b>Cases I'm learning</b> is the most useful, but it needs some
+                    cards marked Learning first.</li>
+                <li>Look at the case and work out which one it is. Try it on your real cube if you like.</li>
+                <li>Press <span class="btn-name">Show answer</span>, then be honest: <span class="btn-name">✅ I knew it</span> or
+                    <span class="btn-name">❌ Not yet</span>.</li>
+            </ol>
+            <p>Moves in brackets like <b>(U')</b> just turn the top layer to line the case up before or after the algorithm.</p>
+            <a class="open-link" href="algorithms.html">Open the Alg Trainer →</a>
+        </section>
+
+        <!-- ================= SMART CUBE ================= -->
+        <section class="card" id="smart">
+            <h2>📡 Smart Cube</h2>
+            <p>A smart cube has Bluetooth inside, so the computer sees every turn. No smart cube? Use the keyboard cube.</p>
+            <h3>Connecting a smart cube</h3>
+            <ol>
+                <li>Use <b>Chrome or Edge</b> on a computer or an Android phone (not iPhone or iPad).</li>
+                <li>Turn the cube on (give it a twist) and make sure it isn't connected to its own app.</li>
+                <li>Press <span class="btn-name">Connect GAN cube</span> for GAN, MoYu AI or Monster Go cubes, or
+                    <span class="btn-name">Connect other smart cube</span> for GoCube, Rubik's Connected or Giiker.</li>
+                <li>Pick your cube in the pop-up. The dot turns green when it's connected.</li>
+                <li>If the cube on screen doesn't match your real cube, solve your real cube and press
+                    <span class="btn-name">My cube is solved now</span>.</li>
+            </ol>
+            <p class="note">If a GAN cube asks for a "MAC address", open the GAN app: it's shown in the cube's info, like AB:12:CD:34:EF:56.</p>
+            <h3>Keyboard cube</h3>
+            <p>No smart cube? Turn the virtual cube with your keyboard (the same keys as csTimer), or tap the buttons:</p>
+            <div class="table-wrap">
+                <table class="keys-table">
+                    <tr><th>Keys</th><th>Moves</th><th>Keys</th><th>Moves</th></tr>
+                    <tr><td><kbd>I</kbd> <kbd>K</kbd></td><td>R, R'</td><td><kbd>D</kbd> <kbd>E</kbd></td><td>L, L'</td></tr>
+                    <tr><td><kbd>J</kbd> <kbd>F</kbd></td><td>U, U'</td><td><kbd>S</kbd> <kbd>L</kbd></td><td>D, D'</td></tr>
+                    <tr><td><kbd>H</kbd> <kbd>G</kbd></td><td>F, F'</td><td><kbd>W</kbd> <kbd>O</kbd></td><td>B, B'</td></tr>
+                    <tr><td><kbd>;</kbd> <kbd>A</kbd></td><td>y, y' (turn whole cube)</td><td><kbd>T</kbd> <kbd>B</kbd></td><td>x, x'</td></tr>
+                    <tr><td><kbd>P</kbd> <kbd>Q</kbd></td><td>z, z'</td><td></td><td></td></tr>
+                </table>
+            </div>
+            <h3>Doing a solve</h3>
+            <ol>
+                <li>Do the scramble. Moves turn <b style="color:#2f9e44">green</b> as you do them. If you turn the wrong way,
+                    it says <b>"Oops! Undo with: …"</b>. Do those moves and carry on.</li>
+                <li>When it says <b>Scrambled!</b>, the timer starts on your first turn. No buttons needed.</li>
+                <li>It stops by itself when the cube is solved.</li>
+            </ol>
+            <p>Scrambled it your own way? Press <span class="btn-name">I scrambled it myself</span>.</p>
+            <h3>What the results mean</h3>
+            <ul>
+                <li><b>Cross → F2L → OLL → PLL</b>: how long each step of your solve took. The boxes light up as you finish each step.</li>
+                <li><b>Moves</b> and <b>TPS</b> (turns per second) for the whole solve and each step.</li>
+                <li>The <b>OLL and PLL cases</b> you got, like "OLL 27 · Sune" or "T-Perm", or <b>OLL skip!</b> /
+                    <b>PLL skip!</b> if you were lucky.</li>
+                <li><span class="btn-name">▶ Replay solve</span> plays your whole solve back, split into steps. Tap any
+                    solve in the History to replay it.</li>
+            </ul>
+            <a class="open-link" href="smartcube.html">Open Smart Cube →</a>
+        </section>
+
+        <!-- ================= SOLVER ================= -->
+        <section class="card" id="solver">
+            <h2>🤖 Solver</h2>
+            <h3>Scanning with the camera</h3>
+            <ol>
+                <li>Press <span class="btn-name">Turn on camera</span> and allow the camera when asked.</li>
+                <li>The page tells you which face to show and which colour must be on top. Fit that face inside the grid
+                    and press <span class="btn-name">📸 Capture this face</span>. The order is:
+                    <ul>
+                        <li>Green facing the camera, white on top</li>
+                        <li>Red facing the camera, white on top</li>
+                        <li>Blue facing the camera, white on top</li>
+                        <li>Orange facing the camera, white on top</li>
+                        <li>White facing the camera, blue on top</li>
+                        <li>Yellow facing the camera, green on top</li>
+                    </ul>
+                </li>
+                <li>Messed one up? <span class="btn-name">Redo last face</span>.</li>
+                <li>Check the cube net under <b>Your cube</b>. If a colour is wrong, tap the right colour in the
+                    row of colours, then tap the wrong sticker to fix it.</li>
+                <li>Press <span class="btn-name">🤖 Solve it!</span></li>
+            </ol>
+            <p><b>Tips for a good scan:</b> use bright, even light (daylight is best), avoid shiny reflections on the
+                stickers, and hold the cube still and square to the camera.</p>
+            <h3>Other ways in</h3>
+            <ul>
+                <li><span class="btn-name">🎨 Paint by hand</span>: pick a colour and tap stickers. Copy your cube with
+                    <b>white on top and green facing you</b>.</li>
+                <li><span class="btn-name">🎲 Random cube</span>: no cube needed. Watch the computer solve a random scramble.</li>
+            </ul>
+            <h3>Following the solution</h3>
+            <ul>
+                <li>Hold your real cube with <b>white on top and green facing you</b>. This is important!</li>
+                <li>Press <span class="btn-name">Next move ▶</span> (or the <kbd>→</kbd> key) and do each move as it's shown.
+                    <span class="btn-name">◀ Back</span> (or <kbd>←</kbd>) goes back.</li>
+                <li>If it says a corner is twisted or an edge is flipped, your real cube was probably taken apart or twisted by
+                    hand. It can't be solved by turning until that's fixed (or a colour was entered wrong).</li>
+            </ul>
+            <a class="open-link" href="solver.html">Open the Solver →</a>
+        </section>
+
+        <!-- ================= TROPHIES ================= -->
+        <section class="card" id="trophies">
+            <h2>🏆 Trophies</h2>
+            <h3>XP and levels</h3>
+            <ul>
+                <li><b>5 XP</b> for every timed solve (10 XP on the Smart Cube page).</li>
+                <li><b>5 XP</b> for each algorithm you're learning, <b>20 XP</b> for each one you've learned.</li>
+                <li>Achievements give <b>25</b> (Common), <b>75</b> (Rare), <b>200</b> (Epic) or <b>500 XP</b> (Legendary).</li>
+                <li>Levels get further apart as you go up. Titles go from Cube Rookie all the way to Cube Legend.</li>
+            </ul>
+            <h3>Achievements</h3>
+            <p>There are 34. Locked ones are grey and tell you what to do to unlock them. When you unlock one, a pop-up
+                appears in the corner of whatever page you're on.</p>
+            <h3>World ranking</h3>
+            <ul>
+                <li>Your best single and best average for each puzzle are compared with everyone who has ever competed
+                    at an official WCA competition.</li>
+                <li><b>Try any time</b> lets you check any time for any event, like a goal you're aiming for.</li>
+                <li>Home times are usually a bit faster than competition times: no nerves and no judge!</li>
+            </ul>
+            <h3>Looking people up</h3>
+            <ul>
+                <li>Type a <b>WCA ID</b> (like 2019WANY36) and press <span class="btn-name">Look up</span> to see that
+                    cuber's records and personal bests.</li>
+                <li>Don't know someone's ID? Search their name on the
+                    <a href="https://www.worldcubeassociation.org/persons" target="_blank" rel="noopener">WCA website</a>.</li>
+                <li><b>World Top 10</b> shows the fastest people for any event. Tap a name to look them up.</li>
+            </ul>
+            <a class="open-link" href="trophies.html">Open Trophies →</a>
+        </section>
+
+        <!-- ================= GLOSSARY ================= -->
+        <section class="card" id="glossary">
+            <h2>📖 Glossary</h2>
+            <dl class="glossary">
+                <dt>Algorithm (alg)</dt>
+                <dd>A set of moves you learn by heart that does one job, like "swap these two corners".</dd>
+                <dt>Notation: R, L, U, D, F, B</dt>
+                <dd>Right, Left, Up (top), Down (bottom), Front and Back faces. A letter on its own means turn that face
+                    clockwise (as if you're looking at it). <b>'</b> ("prime") means counter-clockwise. <b>2</b> means a half turn.</dd>
+                <dt>x, y, z</dt>
+                <dd>Turn the whole cube in your hands: x like R, y like U, z like F.</dd>
+                <dt>M, r, f…</dt>
+                <dd>M is the middle layer (turns like L). A lowercase letter (r) or "w" (Rw) means turn two layers together.</dd>
+                <dt>CFOP</dt>
+                <dd>The method most speedcubers use: <b>C</b>ross, <b>F</b>2L, <b>O</b>LL, <b>P</b>LL.</dd>
+                <dt>Cross</dt>
+                <dd>Step 1: make a cross on one face (usually white) with the edges matching the side centres.</dd>
+                <dt>F2L (First Two Layers)</dt>
+                <dd>Step 2: pair up corners and edges and put them in together, finishing the first two layers.</dd>
+                <dt>OLL (Orient the Last Layer)</dt>
+                <dd>Step 3: make the whole top face one colour. 57 cases.</dd>
+                <dt>PLL (Permute the Last Layer)</dt>
+                <dd>Step 4: move the top pieces to the right places, and it's solved! 21 cases.</dd>
+                <dt>2-Look OLL / PLL</dt>
+                <dd>Doing OLL and PLL in two easier steps each, with only 16 algorithms in total. How most people start.</dd>
+                <dt>Skip</dt>
+                <dd>When a step is already done by luck, so you skip it. An OLL skip and a PLL skip in the same solve is a "last layer skip". Very rare!</dd>
+                <dt>AUF</dt>
+                <dd>"Adjust U Face": a U turn before or after an algorithm to line things up.</dd>
+                <dt>Headlights</dt>
+                <dd>Two corners on one side with the same colour. Used to recognise PLLs.</dd>
+                <dt>Sune / Anti-Sune</dt>
+                <dd>Nicknames for OLL 27 and 26, two of the most used algorithms.</dd>
+                <dt>Scramble</dt>
+                <dd>Random moves to mix up the cube. Competitions use computer-made "random-state" scrambles, and so does the Timer.</dd>
+                <dt>Inspection</dt>
+                <dd>The 15 seconds you get to look at the cube before a solve at a competition.</dd>
+                <dt>+2 / DNF</dt>
+                <dd>Penalties: +2 adds two seconds; DNF means "Did Not Finish" and the solve doesn't count.</dd>
+                <dt>PB</dt>
+                <dd>Personal best: your fastest ever time.</dd>
+                <dt>ao5 / ao12</dt>
+                <dd>Average of 5 / 12: remove the best and worst times, then average the rest.</dd>
+                <dt>TPS</dt>
+                <dd>Turns per second: how fast your fingers go.</dd>
+                <dt>Recognition</dt>
+                <dd>Working out which case you have before you do the algorithm. The Drill trains this.</dd>
+                <dt>Colour neutral</dt>
+                <dd>Being able to start with a cross on any colour, not just white.</dd>
+                <dt>WCA / WCA ID</dt>
+                <dd>The World Cube Association runs official competitions. Everyone who competes gets a WCA ID, like 2019WANY36.</dd>
+                <dt>Smart cube</dt>
+                <dd>A cube with Bluetooth inside that tells a computer or phone every move you make.</dd>
+                <dt>God's Number</dt>
+                <dd>20. Every scrambled 3x3 can be solved in 20 moves or fewer (proved in 2010).</dd>
+                <dt>Two-phase algorithm</dt>
+                <dd>The clever method computers use to find short solutions. The Solver page explains it.</dd>
+            </dl>
+        </section>
+
+        <!-- ================= TROUBLESHOOTING ================= -->
+        <section class="card qa" id="trouble">
+            <h2>🛠 Troubleshooting</h2>
+
+            <h3>The 3D cube or scrambles don't show up</h3>
+            <p>These come from the internet (a library called cubing.js). Check you're online and reload the page.
+                The timer still works offline, with simpler scrambles.</p>
+
+            <h3>Space bar doesn't start the timer</h3>
+            <p>Click an empty part of the page first. If a dropdown or text box is selected, the space bar goes to that
+                instead. Also check you're on the <span class="btn-name">⏱ Timer</span> tab.</p>
+
+            <h3>The Bluetooth buttons are greyed out</h3>
+            <p>Your browser can't do Bluetooth. Use <b>Chrome or Edge</b> on a computer or Android phone. iPhones and iPads
+                don't allow Bluetooth in the browser, but you can still use the keyboard cube there.</p>
+
+            <h3>The smart cube won't connect</h3>
+            <ul>
+                <li>Twist the cube to wake it up, and close its own app (a cube can only talk to one thing at a time).</li>
+                <li>Make sure Bluetooth is turned on for the computer or phone.</li>
+                <li>Try the other connect button: some GAN cubes work with either one.</li>
+            </ul>
+
+            <h3>The screen cube doesn't match my real cube</h3>
+            <p>A move may have been missed. Solve your real cube, then press <span class="btn-name">My cube is solved now</span>.</p>
+
+            <h3>The camera won't turn on</h3>
+            <ul>
+                <li>Allow camera access when the browser asks (look for a camera icon in the address bar if you said no by accident).</li>
+                <li>Cameras only work when the site is opened from an <b>https://</b> address (like the real website), not from a file on your computer.</li>
+                <li>Close other apps that might be using the camera.</li>
+            </ul>
+
+            <h3>The scan got colours wrong</h3>
+            <p>Fix them on the net: pick the right colour, then tap the wrong sticker. For better scans, use brighter,
+                more even light and avoid glare. Red and orange get mixed up most.</p>
+
+            <h3>"One corner is twisted" / "One edge is flipped" / "Two pieces are swapped"</h3>
+            <p>First check the colours on the net carefully: one wrong sticker can cause this. If they're right, your
+                real cube was twisted or taken apart by hand and put back wrong. It can't be solved by turning until you fix that piece.</p>
+
+            <h3>My solves / progress disappeared</h3>
+            <p>Everything is saved in the <b>browser on this device</b>. A different browser, a different device, a
+                private/incognito window, or clearing browsing data will start fresh. Stick to one browser on one device.</p>
+
+            <h3>World rank or look-up says "Couldn't reach the WCA data"</h3>
+            <p>That part needs the internet. Check you're online and try again. (Your own world rank still works offline.)</p>
+        </section>
+
+        <p class="note" style="text-align:center"><a href="#start">↑ Back to the top</a></p>
+    </div>
+
+    <script type="module">
+        import "./js/nav.js";
+    </script>
+</body>
+</html>
