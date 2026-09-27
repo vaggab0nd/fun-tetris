@@ -12,6 +12,8 @@ Web pages for Rubik's cube speedsolving, built on [cubing.js](https://js.cubing.
 | 🏆 [`trophies.html`](trophies.html) **Trophies** | XP, levels, achievements, world ranking against real WCA results, look up any competitor |
 
 The home page (`index.html`) has a big button for each one, and every page shares the same menu at the top.
+Kid-friendly instructions for every page, a glossary and troubleshooting are on the Help page (`help.html`);
+each page links straight to its own section. If you change how a page works, update its Help section too.
 
 ## Running it
 
