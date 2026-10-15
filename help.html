@@ -92,6 +92,7 @@
             <a href="#start">🚀 Getting started</a>
             <a href="#timer">⏱ Timer</a>
             <a href="#algs">📚 Alg Trainer</a>
+            <a href="#skewb">🔷 Skewb</a>
             <a href="#smart">📡 Smart Cube</a>
             <a href="#solver">🤖 Solver</a>
             <a href="#trophies">🏆 Trophies</a>
@@ -113,6 +114,7 @@
                 <li><b>Check your progress.</b> <a href="trophies.html">🏆 Trophies</a> shows your level, your
                     achievements and how you rank against the world.</li>
             </ol>
+            <p>Got a <b>Skewb</b>? The <a href="skewb.html">🔷 Skewb Lab</a> teaches its moves and a 3-algorithm way to solve it.</p>
             <p>Just want to have fun? Try the <a href="solver.html">🤖 Solver</a>: scramble your cube and let the computer solve it.</p>
             <p class="note">Everything is saved in this browser on this device. Nothing is sent anywhere, and there's no account.</p>
         </section>
@@ -180,6 +182,37 @@
             </ol>
             <p>Moves in brackets like <b>(U')</b> just turn the top layer to line the case up before or after the algorithm.</p>
             <a class="open-link" href="algorithms.html">Open the Alg Trainer →</a>
+        </section>
+
+        <!-- ================= SKEWB ================= -->
+        <section class="card" id="skewb">
+            <h2>🔷 Skewb Lab</h2>
+            <p>The Skewb turns around its <b>corners</b>, and each turn moves half the puzzle. Skewb Lab has three tabs:</p>
+            <h3>🔤 Moves</h3>
+            <ul>
+                <li><b>Try the moves</b>: press <span class="btn-name">R</span>, <span class="btn-name">L</span>,
+                    <span class="btn-name">U</span> or <span class="btn-name">B</span> (and the ' versions) and watch which corner turns.
+                    <span class="btn-name">↺ y</span> and <span class="btn-name">↻ y'</span> turn the whole Skewb.</li>
+                <li><b>Name that move!</b>: the Skewb does one move and you pick which. Start on Easy (R and L).</li>
+            </ul>
+            <h3>📖 How to solve it</h3>
+            <ol>
+                <li><b>White layer</b> on top (white centre and its 4 corners), by thinking it through.</li>
+                <li><b>Twist the bottom corners</b> with the Sledgehammer, <b>R' B R B'</b>.</li>
+                <li><b>Fix the centres</b>: Bottom Swap for the yellow centre, then Side Cycle for the sides.</li>
+            </ol>
+            <p>Each step says how to hold the Skewb before you start the algorithm. The little Skewbs play each algorithm:
+                use their play buttons to go step by step.</p>
+            <h3>🧑‍🏫 Practise with a coach</h3>
+            <ul>
+                <li>Mix up your real Skewb with the scramble shown, with white on top and green at the front.</li>
+                <li>The coach tells you the next step. Do it on your Skewb <b>and</b> press the same buttons so the screen keeps up.</li>
+                <li>Stuck on the white layer? <span class="btn-name">💡 Show me the moves</span> shows the shortest way.
+                    <span class="btn-name">▶ Do it for me</span> does the next step on the screen.</li>
+                <li><span class="btn-name">↩ Undo</span> takes back the last move or algorithm.</li>
+            </ul>
+            <p class="note">Want to time your Skewb solves? Use the <a href="rubiks.html">⏱ Timer</a> and choose <b>Skewb</b> as the event.</p>
+            <a class="open-link" href="skewb.html">Open Skewb Lab →</a>
         </section>
 
         <!-- ================= SMART CUBE ================= -->
@@ -314,6 +347,11 @@
                 <dd>Turn the whole cube in your hands: x like R, y like U, z like F.</dd>
                 <dt>M, r, f…</dt>
                 <dd>M is the middle layer (turns like L). A lowercase letter (r) or "w" (Rw) means turn two layers together.</dd>
+                <dt>Skewb notation: R, L, U, B</dt>
+                <dd>On a Skewb each letter turns around a corner: R bottom-right-back, L bottom-left-front, B bottom-left-back,
+                    U top-left-back. Clockwise as you look at that corner. There are no "2" moves.</dd>
+                <dt>Sledgehammer</dt>
+                <dd>The Skewb algorithm R' B R B'. It twists the bottom corners and keeps the top layer safe.</dd>
                 <dt>CFOP</dt>
                 <dd>The method most speedcubers use: <b>C</b>ross, <b>F</b>2L, <b>O</b>LL, <b>P</b>LL.</dd>
                 <dt>Cross</dt>

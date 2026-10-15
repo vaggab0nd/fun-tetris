@@ -85,6 +85,7 @@ export function gatherStats() {
     const status = load("cubeLabAlgStatus", {});
     const flags = load("cubeLabFlags", {});
     const bestStreak = Number(load("cubeLabBestStreak", 0)) || 0;
+    const skewbBestStreak = Number(load("skewbBestStreak", 0)) || 0;
 
     const events = {};
     for (const [eventId, solves] of Object.entries(timer)) {
@@ -130,6 +131,7 @@ export function gatherStats() {
         learnedPll: learned(pllIds),
         learnedTwoLook: learned(twoLookIds),
         bestStreak,
+        skewbBestStreak,
         flags,
     };
 }
@@ -138,6 +140,7 @@ export function gatherStats() {
 const S = 1000;
 const best333 = (st) => st.events["333"]?.bestSingle ?? Infinity;
 const ao5333 = (st) => st.events["333"]?.bestAo5 ?? Infinity;
+const bestSkewb = (st) => st.events.skewb?.bestSingle ?? Infinity;
 const smartAny = (st, fn) => st.smart.some(fn);
 
 export const RARITY = {
@@ -191,6 +194,11 @@ export const ACHIEVEMENTS = [
     // Solver
     ["solver", "Computer Assist", "Solve a cube with the Solver", "common", (st) => st.flags.solverUsed],
     ["scanner", "Cube Scanner", "Scan a real cube with the camera", "rare", (st) => st.flags.cameraScan],
+    // Skewb
+    ["skewb-coach", "Skewb Solver", "Solve a Skewb with the Skewb coach", "common", (st) => st.flags.skewbCoachSolved],
+    ["skewb-streak", "Corner Spotter", "Skewb Name That Move streak of 10", "common", (st) => st.skewbBestStreak >= 10],
+    ["skewb-sub-30", "Skewb Sub-30", "Skewb single under 30 seconds", "rare", (st) => bestSkewb(st) < 30 * S],
+    ["skewb-sub-10", "Skewb Sub-10", "Skewb single under 10 seconds", "epic", (st) => bestSkewb(st) < 10 * S],
 ].map(([id, name, desc, rarity, test]) => ({ id, name, desc, rarity, test }));
 
 // ---------- XP and levels ----------

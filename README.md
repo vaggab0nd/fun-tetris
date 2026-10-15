@@ -13,13 +13,14 @@ or host the repo on GitHub Pages.
 | 🐍 `tetris.py` | Tetris in the terminal (Python) | This README |
 | ⏱ `rubiks.html` | **Cube Lab**: speedcubing timer with WCA-style scrambles, plus a notation trainer | [CUBE_LAB.md](CUBE_LAB.md) |
 | 📚 `algorithms.html` | **Alg Trainer**: learn 2-Look, OLL and PLL, track progress, drill recognition | [CUBE_LAB.md](CUBE_LAB.md) |
+| 🔷 `skewb.html` | **Skewb Lab**: Skewb notation trainer, a 3-algorithm beginner method, and a coach | [CUBE_LAB.md](CUBE_LAB.md) |
 | 📡 `smartcube.html` | **Smart Cube**: Bluetooth smart cubes (or keyboard), CFOP splits, case recognition, replays | [CUBE_LAB.md](CUBE_LAB.md) |
 | 🤖 `solver.html` | **Solver**: scan a cube with the camera, get a ~20 move solution | [CUBE_LAB.md](CUBE_LAB.md) |
 | 🏆 `trophies.html` | **Trophies**: XP, achievements, world ranking vs real WCA results | [CUBE_LAB.md](CUBE_LAB.md) |
 | 🎵 `spotify-to-apple-music/` | Converts Spotify playlist exports to Apple Music playlists (Node.js) | [its CLAUDE.md](spotify-to-apple-music/CLAUDE.md) |
 
 Start at the home page (`index.html`, the site's front page on GitHub Pages). Every cube page has the same
-big menu at the top (Home · Timer · Alg Trainer · Smart Cube · Solver · Trophies · Help · Tetris),
+big menu at the top (Home · Timer · Alg Trainer · Skewb · Smart Cube · Solver · Trophies · Help · Tetris),
 plus a "❓ How does this page work?" link to that page's help.
 
 ---
