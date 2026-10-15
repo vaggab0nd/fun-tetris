@@ -4,6 +4,7 @@ const LINKS = [
     ["index.html", "🏠 Home"],
     ["rubiks.html", "⏱ Timer"],
     ["algorithms.html", "📚 Alg Trainer"],
+    ["skewb.html", "🔷 Skewb"],
     ["smartcube.html", "📡 Smart Cube"],
     ["solver.html", "🤖 Solver"],
     ["trophies.html", "🏆 Trophies"],
@@ -15,6 +16,7 @@ const LINKS = [
 const HELP_SECTIONS = {
     "rubiks.html": "timer",
     "algorithms.html": "algs",
+    "skewb.html": "skewb",
     "smartcube.html": "smart",
     "solver.html": "solver",
     "trophies.html": "trophies",

@@ -7,6 +7,7 @@ Web pages for Rubik's cube speedsolving, built on [cubing.js](https://js.cubing.
 |---|---|
 | ⏱ [`rubiks.html`](rubiks.html) **Timer & Notation** | Timing solves like at a competition, and learning to read cube notation |
 | 📚 [`algorithms.html`](algorithms.html) **Alg Trainer** | Learning last-layer algorithms (2-Look, OLL, PLL) and practising recognition |
+| 🔷 [`skewb.html`](skewb.html) **Skewb Lab** | Skewb moves and a "name that move" quiz, a 3-algorithm beginner method, and a coach that says what to do next |
 | 📡 [`smartcube.html`](smartcube.html) **Smart Cube** | Bluetooth smart cubes (or a keyboard cube): automatic timing, CFOP splits, case recognition, replays |
 | 🤖 [`solver.html`](solver.html) **Solver** | Scan a real cube with the camera (or paint it in) and get a ~20 move solution to follow |
 | 🏆 [`trophies.html`](trophies.html) **Trophies** | XP, levels, achievements, world ranking against real WCA results, look up any competitor |
@@ -112,6 +113,25 @@ update automatically. Just make sure it solves the same case, or it will end up 
 
 ---
 
+## 🔷 Skewb Lab (`skewb.html`)
+
+- **Moves:** buttons for the 8 Skewb moves (R, L, U, B and primes, WCA notation) plus y / y' on a 3D Skewb,
+  a guide to which corner each letter turns, and **Name that move!** (Easy: R and L; Hard: all four).
+  The best streak is saved.
+- **How to solve it:** a beginner method that keeps the white layer on top:
+  1. White layer (intuitive).
+  2. Twist the bottom corners with the **Sledgehammer** `R' B R B'` (at most twice).
+  3. Centres: **Bottom Swap** `R' B R B' L' U R U'` for the yellow centre, then **Side Cycle**
+     `R' L U L' U' B U B'` for the sides.
+  Each algorithm plays on its own little Skewb.
+- **Practise with a coach:** an official random-state scramble to put on a real Skewb, buttons to do moves and
+  algorithms on the screen, and a coach that reads the screen Skewb and says the next step (which way to hold it
+  and which algorithm). It can show the shortest white layer (never more than 7 moves) or do the next step for you.
+
+How it was checked: the method rules live in `js/skewb-method.js`. They were run (in Node, with cubing.js) on every one of
+the 2,160 positions that have the white layer done (540 positions × 4 ways of holding it). Every one is solved, in 6
+algorithms or fewer. A full search of all 3,149,280 Skewb positions confirmed the white layer never needs more than 7 moves.
+
 ## 📡 Smart Cube (`smartcube.html`)
 
 ### Connecting
@@ -166,7 +186,7 @@ update automatically. Just make sure it solves the same case, or it will end up 
 
 - **Level and XP:** earned by timed solves, Smart Cube solves, algorithms learned, and achievements.
   Titles go from *Cube Rookie* to *Cube Legend*.
-- **34 achievements:** Common, Rare, Epic and Legendary (Sub-30 Club, PLL Wizard, OLL skip, Jackpot for
+- **38 achievements:** Common, Rare, Epic and Legendary (Sub-30 Club, PLL Wizard, OLL skip, Jackpot for
   a full last-layer skip, and more). A pop-up appears on any page the moment one unlocks.
 - **World ranking:** his best single and ao5 for each event compared with every official WCA competitor,
   e.g. "World rank about #80,954 of 281,083, faster than 71.2%". There's also a calculator for any
@@ -195,7 +215,8 @@ Everything is stored in the browser's `localStorage`. Nothing is sent anywhere.
 | `cubeLabBestStreak` | Best "Name that move!" streak |
 | `cubeLabAlgStatus` | Not started / Learning / Learned for each case |
 | `cubeLabSmartSolves` | Smart Cube solves (times, splits, cases, moves for replays) |
-| `cubeLabFlags` | Whether the Solver / camera scan has been used (for achievements) |
+| `skewbBestStreak` | Best Skewb "Name that move!" streak |
+| `cubeLabFlags` | Whether the Solver / camera scan / Skewb coach has been used (for achievements) |
 | `cubeLabAchievementsSeen`, `cubeLabLevelSeen` | Which achievements and level have already had a pop-up |
 
 Clearing site data or using a different browser/device starts fresh.
@@ -209,6 +230,7 @@ Clearing site data or using a different browser/device starts fresh.
 | `js/cube-scan.js` | Camera colour reading |
 | `js/progress.js` | XP, levels, achievements, world-rank lookups, achievement pop-ups |
 | `js/wca-ranks.js` | The world ranking table |
+| `js/skewb-method.js` | The Skewb beginner method and coach: a small Skewb model built from cubing.js's, step checks, hints, and a white-layer search |
 | `js/nav.js` | The shared top menu |
 | `css/site.css` | Shared styles for the newer pages |
 

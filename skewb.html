@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skewb Lab</title>
+    <link rel="stylesheet" href="css/site.css">
+    <style>
+        .warn { display: none; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+
+        .tab {
+            flex: 1 1 auto;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 8px;
+        }
+
+        .tab.active, .tab.active:hover { background: #667eea; color: #fff; }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        twisty-player { height: 260px; }
+
+        .moves {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .moves button { padding: 10px 0; font-size: 1.05em; }
+        .moves button.turn { border-style: dashed; }
+
+        .history {
+            margin-top: 10px;
+            min-height: 1.5em;
+            font-weight: bold;
+            word-spacing: 0.3em;
+        }
+
+        .corner-key { margin-top: 6px; line-height: 1.5; }
+        .corner-key div { display: flex; gap: 8px; }
+        .corner-key b { color: #764ba2; width: 1.6em; flex: none; }
+
+        .choices {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .choices button { padding: 12px 0; font-size: 1.2em; }
+        .choices button.right { background: #51cf66; border-color: #51cf66; color: #fff; }
+        .choices button.wrong { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
+
+        .feedback { margin-top: 8px; font-weight: bold; min-height: 1.3em; }
+
+        /* Method */
+        .step-num {
+            display: inline-block;
+            width: 1.8em;
+            height: 1.8em;
+            line-height: 1.8em;
+            text-align: center;
+            border-radius: 50%;
+            background: #764ba2;
+            color: #fff;
+            margin-right: 6px;
+        }
+
+        .card ul, .card ol { margin: 6px 0 8px 22px; line-height: 1.5; }
+        .card p { line-height: 1.5; margin-bottom: 6px; }
+
+        .alg-box {
+            background: #fff;
+            border: 2px solid #b8b2e6;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .alg-box .alg-name { font-weight: bold; color: #764ba2; }
+
+        .alg-text {
+            font-size: 1.3em;
+            font-weight: bold;
+            word-spacing: 0.3em;
+            margin: 4px 0;
+        }
+
+        .alg-box twisty-player { height: 220px; }
+
+        /* Coach */
+        .coach {
+            background: #1e1e2e;
+            color: #fff;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .coach h3 { color: #ffd43b; margin: 0 0 6px; }
+        .coach p { line-height: 1.45; }
+        .coach .todo { font-size: 1.25em; font-weight: bold; margin-top: 8px; word-spacing: 0.25em; }
+        .coach .todo span { color: #ffd43b; }
+        .coach .row { margin-top: 10px; }
+
+        .scramble-text {
+            font-size: 1.15em;
+            font-weight: bold;
+            word-spacing: 0.3em;
+            margin: 6px 0;
+        }
+
+        .alg-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+        .alg-buttons button { padding: 8px 4px; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>🔷 Skewb Lab</h1>
+            <nav class="site-nav" data-current="skewb.html"></nav>
+        </header>
+
+        <div class="warn" id="loadWarn">
+            Couldn't load the 3D Skewb (are you offline?). You can still read the method, but the moving
+            Skewbs, the quiz and the coach need the internet.
+        </div>
+
+        <p class="intro">The <b>Skewb</b> is a cube that turns around its <b>corners</b> instead of its faces.
+            Every turn moves half of the puzzle. Learn the moves, then learn to solve it with just
+            <b>3 algorithms</b>, with a coach to help. Time your Skewb solves in the
+            <a href="rubiks.html">⏱ Timer</a> (choose <b>Skewb</b> as the event).</p>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="notation">🔤 Moves</button>
+            <button class="tab" data-tab="method">📖 How to solve it</button>
+            <button class="tab" data-tab="coach">🧑‍🏫 Practise with a coach</button>
+        </div>
+
+        <!-- ============ MOVES ============ -->
+        <section class="panel active" id="panel-notation">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Try the moves</h2>
+                    <twisty-player id="notationPlayer" puzzle="skewb" control-panel="none"
+                        background="none"></twisty-player>
+                    <div class="moves" id="moveButtons"></div>
+                    <div class="moves">
+                        <button class="turn" data-turn="y'">↻ y'</button>
+                        <button class="turn" data-turn="y">↺ y</button>
+                        <button id="resetSkewb" style="grid-column: span 2">Reset</button>
+                    </div>
+                    <div class="history" id="history"></div>
+                    <p class="note">Tip: drag the Skewb to spin it around and see the back.</p>
+                </div>
+                <div class="card">
+                    <h2>How to read it</h2>
+                    <p>Each letter turns the half of the Skewb around one <b>corner</b>. Hold it with white on top
+                        and green at the front. Three of the corners are on the <b>bottom</b>:</p>
+                    <div class="corner-key">
+                        <div><b>R</b><span>bottom-<b>right</b>-back corner</span></div>
+                        <div><b>L</b><span>bottom-<b>left</b>-front corner</span></div>
+                        <div><b>B</b><span>bottom-left-<b>back</b> corner</span></div>
+                        <div><b>U</b><span>top-left-back corner (the only <b>top</b> one)</span></div>
+                    </div>
+                    <p style="margin-top:10px">
+                        A letter alone = turn <b>clockwise</b>, as if you were looking straight at that corner.<br>
+                        <b>'</b> (say "prime") = counter-clockwise. <b>R'</b> undoes <b>R</b>.<br>
+                        There's no <b>R2</b>: three turns bring a corner back where it started, so <b>R R</b> is the same as <b>R'</b>.
+                    </p>
+                    <p><b>y</b> and <b>y'</b> turn the <b>whole</b> Skewb in your hands (white stays on top).
+                        <b>y</b> turns it like U on a 3x3, so the front goes to the left.</p>
+                    <p class="note">This is the official WCA notation, the same as the Skewb scrambles in the Timer.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Name that move!</h2>
+                <div class="grid-2">
+                    <twisty-player id="quizPlayer" puzzle="skewb" control-panel="none"
+                        background="none" tempo-scale="0.6"></twisty-player>
+                    <div>
+                        <div class="row">
+                            <select id="quizLevel" aria-label="Level">
+                                <option value="easy">Easy: R and L</option>
+                                <option value="hard">Hard: R, L, U, B</option>
+                            </select>
+                            <button id="quizReplay">Replay</button>
+                        </div>
+                        <p style="margin-top:8px">Streak: <b id="streak">0</b> (best <b id="bestStreak">0</b>)</p>
+                        <div class="choices" id="choices"></div>
+                        <div class="feedback" id="feedback"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ METHOD ============ -->
+        <section class="panel" id="panel-method">
+            <div class="card">
+                <h2>The plan</h2>
+                <p>This beginner method keeps the <b>white layer on top</b> the whole time, so the bottom is <b>yellow</b>.
+                    (On your own Skewb you can start with any colour. The steps are the same.)</p>
+                <ol>
+                    <li><b>White layer</b>: the white centre plus the 4 corners around it. No algorithms, just think!</li>
+                    <li><b>Twist the bottom corners</b> with the <b>Sledgehammer</b>.</li>
+                    <li><b>Fix the centres</b>: the yellow centre with the <b>Bottom Swap</b>, then the sides with the <b>Side Cycle</b>.</li>
+                </ol>
+                <p class="note">We checked this on a computer against all 3,149,280 ways a Skewb can be mixed up:
+                    after the white layer, it always finishes in 6 algorithms or fewer.</p>
+            </div>
+
+            <div class="card">
+                <h2><span class="step-num">1</span>The white layer</h2>
+                <p>Get the <b>white centre</b> on top with <b>4 white corners</b> around it, so the top is all white.
+                    The side colours of those corners must <b>match each other</b> too (two greens next to each other, and so on).
+                    The side centres don't matter yet.</p>
+                <ul>
+                    <li>Start with the white centre and one corner that goes with it, then add corners one at a time.</li>
+                    <li>A corner on the bottom can usually go up into its place with just one or two turns. Try R, R', L, L', B and B' and watch where it goes.</li>
+                    <li>If you put a corner in and it knocks another one out, undo it and try from a different side.</li>
+                    <li>It's never more than 7 moves. If you get stuck, the <a href="#" data-goto="coach">coach</a> can show you a solution.</li>
+                </ul>
+                <p>Got it? <b>Keep the white layer on top</b> from now on.</p>
+            </div>
+
+            <div class="card">
+                <h2><span class="step-num">2</span>Twist the bottom corners</h2>
+                <p>Good news: the 4 bottom corners are already in the right places! Some may be <b>twisted</b>:
+                    their yellow sticker is on the side instead of the bottom. Look at the bottom and count the twisted corners:</p>
+                <ul>
+                    <li><b>None:</b> skip to step 3.</li>
+                    <li><b>All 4 twisted:</b> one side has <b>two yellow stickers</b> on its bottom corners. Turn the Skewb (y)
+                        so that side is on the <b>right</b>, then do the Sledgehammer. Done!</li>
+                    <li><b>2 twisted:</b> turn the Skewb so a twisted corner is at the bottom <b>front-right</b> with its
+                        yellow sticker <b>facing you</b>. Do the Sledgehammer. Now all 4 are twisted: do the line above.</li>
+                </ul>
+                <div class="alg-box">
+                    <div class="alg-name">🔨 Sledgehammer</div>
+                    <div class="alg-text" data-alg="sledge"></div>
+                    <twisty-player class="method-player" data-alg="sledge" puzzle="skewb" background="none"
+                        experimental-setup-anchor="end"></twisty-player>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><span class="step-num">3</span>Fix the centres</h2>
+                <h3>3a. The yellow centre</h3>
+                <p>If the yellow centre isn't on the bottom, turn the Skewb so it's at the <b>front</b>, then do the <b>Bottom Swap</b>.
+                    It moves the front centre to the bottom. It's the Sledgehammer, then 4 more moves.</p>
+                <div class="alg-box">
+                    <div class="alg-name">⬇️ Bottom Swap</div>
+                    <div class="alg-text" data-alg="bottom"></div>
+                    <twisty-player class="method-player" data-alg="bottom" puzzle="skewb" background="none"
+                        experimental-setup-anchor="end"></twisty-player>
+                </div>
+
+                <h3>3b. The side centres</h3>
+                <p>Each side centre should match the corners around it. Count how many side centres are right:</p>
+                <ul>
+                    <li><b>All 4:</b> solved! 🎉</li>
+                    <li><b>Just 1:</b> turn the Skewb so the right one is at the <b>front</b>. Do the <b>Side Cycle</b>.
+                        Not solved yet? Do it once more.</li>
+                    <li><b>None:</b> do the Side Cycle once from any side. Now exactly 1 will be right, so do the line above.</li>
+                </ul>
+                <p class="note">You'll never see exactly 2 or 3 right. A Skewb can't do that!</p>
+                <div class="alg-box">
+                    <div class="alg-name">🔄 Side Cycle</div>
+                    <div class="alg-text" data-alg="sides"></div>
+                    <twisty-player class="method-player" data-alg="sides" puzzle="skewb" background="none"
+                        experimental-setup-anchor="end"></twisty-player>
+                    <p class="note">The front centre stays put. The other three swap round: back → right → left → back.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ COACH ============ -->
+        <section class="panel" id="panel-coach">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Your Skewb</h2>
+                    <p>Mix up your real Skewb with this scramble (white on top, green at the front), or just
+                        practise on the screen.</p>
+                    <div class="scramble-text" id="coachScramble">…</div>
+                    <twisty-player id="coachPlayer" puzzle="skewb" control-panel="none" background="none"
+                        tempo-scale="1.5"></twisty-player>
+                    <div class="moves" id="coachMoves"></div>
+                    <div class="moves">
+                        <button class="turn" data-coach-turn="y'">↻ y'</button>
+                        <button class="turn" data-coach-turn="y">↺ y</button>
+                        <button id="coachUndo">↩ Undo</button>
+                        <button id="coachNew" class="primary">New scramble</button>
+                    </div>
+                    <div class="alg-buttons" id="coachAlgs"></div>
+                    <div class="history" id="coachHistory"></div>
+                </div>
+                <div>
+                    <div class="coach" id="coachBox">
+                        <h3 id="coachTitle">Loading…</h3>
+                        <p id="coachText"></p>
+                        <div class="todo" id="coachTodo"></div>
+                        <div class="row">
+                            <button id="coachShow">💡 Show me the moves</button>
+                            <button id="coachDo" class="primary">▶ Do it for me</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>How to use the coach</h2>
+                        <ul>
+                            <li>The coach looks at the Skewb on the screen and tells you the next step.</li>
+                            <li>Press the move and algorithm buttons to do them on the screen. Do the same on your real Skewb.</li>
+                            <li><b>y</b> / <b>y'</b> turn the whole Skewb, keeping white on top.</li>
+                            <li>For the white layer, try it yourself first. Stuck? Press <span style="white-space:nowrap">💡 Show me the moves</span>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        import "./js/nav.js";
+        import { checkAchievements, setFlag } from "./js/progress.js";
+        import { ALGS, MOVES, createSkewbCoach } from "./js/skewb-method.js";
+
+        // cubing.js (https://js.cubing.net/cubing/) draws the Skewb, makes official scrambles and
+        // knows how every move works (the coach uses that). Without it, only the text works.
+        const CUBING = "https://cdn.cubing.net/v0/js/cubing/";
+        let coach = null;
+        let randomScrambleForEvent = null;
+        try {
+            const [puzzlesMod, scrambleMod] = await Promise.all([
+                import(CUBING + "puzzles"),
+                import(CUBING + "scramble"),
+                import(CUBING + "twisty"), // registers <twisty-player>
+            ]);
+            coach = createSkewbCoach(await puzzlesMod.puzzles.skewb.kpuzzle());
+            randomScrambleForEvent = scrambleMod.randomScrambleForEvent;
+        } catch (err) {
+            console.error("cubing.js failed to load", err);
+            document.getElementById("loadWarn").style.display = "block";
+        }
+
+        const $ = (id) => document.getElementById(id);
+        const pick = (list) => list[Math.floor(Math.random() * list.length)];
+        const shuffle = (list) => list
+            .map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+        const load = (key, fallback) => {
+            try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+        };
+        const save = (key, value) => {
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+        };
+
+        // Animate `alg` on a player, starting from `setup`.
+        function playOn(player, setup, alg) {
+            player.experimentalSetupAlg = setup;
+            player.alg = alg;
+            player.jumpToStart();
+            setTimeout(() => player.play(), 250);
+        }
+
+        // ---------- Tabs ----------
+        function showTab(name) {
+            document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === name));
+            document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + name));
+        }
+        document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => showTab(tab.dataset.tab)));
+        document.querySelectorAll("[data-goto]").forEach((a) => a.addEventListener("click", (e) => {
+            e.preventDefault();
+            showTab(a.dataset.goto);
+        }));
+
+        // ---------- Moves: try them ----------
+        const notationPlayer = $("notationPlayer");
+        const history = [];
+        function addNotationMove(move) {
+            if (!coach) return;
+            playOn(notationPlayer, history.join(" "), move);
+            history.push(move);
+            $("history").textContent = history.join(" ");
+        }
+        for (const move of MOVES) {
+            const btn = document.createElement("button");
+            btn.textContent = move;
+            btn.addEventListener("click", () => addNotationMove(move));
+            $("moveButtons").append(btn);
+        }
+        document.querySelectorAll("[data-turn]").forEach((btn) =>
+            btn.addEventListener("click", () => addNotationMove(btn.dataset.turn)));
+        $("resetSkewb").addEventListener("click", () => {
+            if (!coach) return;
+            history.length = 0;
+            notationPlayer.experimentalSetupAlg = "";
+            notationPlayer.alg = "";
+            $("history").textContent = "";
+        });
+
+        // ---------- Moves: quiz ----------
+        const quizPlayer = $("quizPlayer");
+        let quizAnswer = null;
+        let answered = false;
+        let streak = 0;
+        let bestStreak = Number(load("skewbBestStreak", 0)) || 0;
+        $("bestStreak").textContent = bestStreak;
+
+        function newQuestion() {
+            const faces = $("quizLevel").value === "easy" ? ["R", "L"] : ["R", "L", "U", "B"];
+            const moves = faces.flatMap((f) => [f, f + "'"]);
+            quizAnswer = pick(moves);
+            answered = false;
+            // The answer, its opposite direction (the tricky one), and other moves from this level to make 4.
+            const opposite = quizAnswer.endsWith("'") ? quizAnswer[0] : quizAnswer + "'";
+            const others = shuffle(moves.filter((m) => m !== quizAnswer && m !== opposite));
+            const options = shuffle([quizAnswer, opposite, ...others.slice(0, 2)]);
+            $("choices").innerHTML = "";
+            for (const move of options) {
+                const btn = document.createElement("button");
+                btn.textContent = move;
+                btn.addEventListener("click", () => answer(btn, move));
+                $("choices").append(btn);
+            }
+            $("feedback").textContent = "Watch the Skewb… which move was that?";
+            playOn(quizPlayer, "", quizAnswer);
+        }
+
+        function answer(btn, move) {
+            if (answered) return;
+            answered = true;
+            const correct = move === quizAnswer;
+            if (correct) {
+                streak++;
+                if (streak > bestStreak) {
+                    bestStreak = streak;
+                    save("skewbBestStreak", bestStreak);
+                    checkAchievements();
+                }
+                $("feedback").textContent = "✅ Yes! Next one coming…";
+            } else {
+                streak = 0;
+                $("feedback").textContent = `❌ That was ${quizAnswer}. Next one coming…`;
+                btn.classList.add("wrong");
+            }
+            $("choices").querySelectorAll("button").forEach((b) => {
+                if (b.textContent === quizAnswer) b.classList.add("right");
+            });
+            $("streak").textContent = streak;
+            $("bestStreak").textContent = bestStreak;
+            setTimeout(newQuestion, 1500);
+        }
+
+        $("quizReplay").addEventListener("click", () => quizAnswer && playOn(quizPlayer, "", quizAnswer));
+        $("quizLevel").addEventListener("change", () => {
+            streak = 0;
+            $("streak").textContent = 0;
+            newQuestion();
+        });
+
+        // ---------- Method ----------
+        document.querySelectorAll(".alg-text[data-alg]").forEach((el) => {
+            el.textContent = ALGS[el.dataset.alg].alg;
+        });
+        document.querySelectorAll(".method-player").forEach((p) => {
+            p.alg = ALGS[p.dataset.alg].alg;
+        });
+
+        // ---------- Coach ----------
+        const coachPlayer = $("coachPlayer");
+        let scramble = "";
+        let done = []; // groups of moves the learner did, so Undo can take back a whole algorithm
+        let lastHint = null;
+        let shownSolution = "";
+        const TURN_WORDS = {
+            y: "y (turn the whole Skewb so the front goes left)",
+            "y'": "y' (turn the whole Skewb so the front goes right)",
+            y2: "y2 (turn the whole Skewb half-way round)",
+        };
+
+        const doneMoves = () => done.flat().join(" ");
+        const coachState = () => coach.fromAlg(`${scramble} ${doneMoves()}`);
+
+        function coachDo(alg) {
+            if (!coach || !alg.trim()) return;
+            playOn(coachPlayer, `${scramble} ${doneMoves()}`, alg);
+            done.push(alg.trim().split(/\s+/));
+            updateCoach();
+        }
+
+        function updateCoach() {
+            $("coachHistory").textContent = done.map((g) => g.join(" ")).join(" · ");
+            const state = coachState();
+            const hint = coach.hint(state);
+            lastHint = hint;
+            shownSolution = "";
+            $("coachTitle").textContent = hint.title;
+            $("coachText").textContent = hint.text;
+            $("coachShow").style.display = hint.solveWhiteLayer ? "" : "none";
+            $("coachDo").style.display = hint.step === 4 ? "none" : "";
+            if (hint.solveWhiteLayer) {
+                $("coachTodo").textContent = "";
+            } else if (hint.step === 4) {
+                $("coachTodo").textContent = "";
+                setFlag("skewbCoachSolved");
+                checkAchievements();
+            } else {
+                const name = Object.values(ALGS).find((a) => a.alg === hint.alg)?.name ?? "";
+                $("coachTodo").innerHTML = "";
+                if (hint.turn) {
+                    const turn = document.createElement("div");
+                    turn.innerHTML = "1. Turn: <span></span>";
+                    turn.querySelector("span").textContent = TURN_WORDS[hint.turn];
+                    $("coachTodo").append(turn);
+                }
+                const step = document.createElement("div");
+                step.innerHTML = `${hint.turn ? "2. " : ""}${name}: <span></span>`;
+                step.querySelector("span").textContent = hint.alg;
+                $("coachTodo").append(step);
+            }
+        }
+
+        function showSolution() {
+            if (!lastHint?.solveWhiteLayer) return;
+            $("coachTitle").textContent = "Thinking…";
+            // Give the browser a moment to show "Thinking…" before the search.
+            setTimeout(() => {
+                shownSolution = coach.whiteLayerSolution(coachState()) ?? "";
+                $("coachTitle").textContent = lastHint.title;
+                $("coachTodo").innerHTML = "White layer: <span></span>";
+                $("coachTodo").querySelector("span").textContent = shownSolution;
+            }, 30);
+        }
+
+        $("coachShow").addEventListener("click", showSolution);
+        $("coachDo").addEventListener("click", () => {
+            if (!lastHint) return;
+            if (lastHint.solveWhiteLayer) {
+                const solution = shownSolution || coach.whiteLayerSolution(coachState());
+                if (solution) coachDo(solution);
+            } else {
+                coachDo(`${lastHint.turn} ${lastHint.alg}`);
+            }
+        });
+
+        for (const move of MOVES) {
+            const btn = document.createElement("button");
+            btn.textContent = move;
+            btn.addEventListener("click", () => coachDo(move));
+            $("coachMoves").append(btn);
+        }
+        document.querySelectorAll("[data-coach-turn]").forEach((btn) =>
+            btn.addEventListener("click", () => coachDo(btn.dataset.coachTurn)));
+        for (const a of Object.values(ALGS)) {
+            const btn = document.createElement("button");
+            btn.textContent = a.name;
+            btn.title = a.alg;
+            btn.addEventListener("click", () => coachDo(a.alg));
+            $("coachAlgs").append(btn);
+        }
+        $("coachUndo").addEventListener("click", () => {
+            if (!coach || !done.length) return;
+            done.pop();
+            coachPlayer.experimentalSetupAlg = scramble;
+            coachPlayer.alg = doneMoves();
+            coachPlayer.jumpToEnd();
+            updateCoach();
+        });
+
+        async function newCoachScramble() {
+            if (!coach) return;
+            $("coachScramble").textContent = "…";
+            try {
+                scramble = (await randomScrambleForEvent("skewb")).toString();
+            } catch {
+                // Fallback: 11 random moves, never the same corner twice in a row.
+                const moves = [];
+                while (moves.length < 11) {
+                    const m = pick(MOVES);
+                    if (moves.length && moves[moves.length - 1][0] === m[0]) continue;
+                    moves.push(m);
+                }
+                scramble = moves.join(" ");
+            }
+            done = [];
+            $("coachScramble").textContent = scramble;
+            coachPlayer.experimentalSetupAlg = scramble;
+            coachPlayer.alg = "";
+            updateCoach();
+        }
+        $("coachNew").addEventListener("click", newCoachScramble);
+
+        // ---------- Start ----------
+        checkAchievements();
+        if (coach) {
+            newQuestion();
+            newCoachScramble();
+        } else {
+            $("coachTitle").textContent = "The coach needs the internet to load.";
+        }
+    </script>
+</body>
+</html>
