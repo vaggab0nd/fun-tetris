@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Megaminx Lab</title>
+    <link rel="stylesheet" href="css/site.css">
+    <style>
+        .warn { display: none; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+
+        .tab {
+            flex: 1 1 auto;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 8px;
+        }
+
+        .tab.active, .tab.active:hover { background: #667eea; color: #fff; }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        twisty-player { height: 280px; }
+
+        .moves {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .moves button { padding: 10px 0; font-size: 1em; }
+        .moves button.wca { border-style: dashed; }
+
+        .history {
+            margin-top: 10px;
+            min-height: 1.5em;
+            font-weight: bold;
+            word-spacing: 0.3em;
+        }
+
+        .face-key { margin-top: 6px; line-height: 1.5; }
+        .face-key div { display: flex; gap: 8px; }
+        .face-key b { color: #764ba2; width: 2.4em; flex: none; }
+
+        .choices {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .choices button { padding: 12px 0; font-size: 1.2em; }
+        .choices button.right { background: #51cf66; border-color: #51cf66; color: #fff; }
+        .choices button.wrong { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
+
+        .feedback { margin-top: 8px; font-weight: bold; min-height: 1.3em; }
+
+        .step-num {
+            display: inline-block;
+            width: 1.8em;
+            height: 1.8em;
+            line-height: 1.8em;
+            text-align: center;
+            border-radius: 50%;
+            background: #764ba2;
+            color: #fff;
+            margin-right: 6px;
+        }
+
+        .card ul, .card ol { margin: 6px 0 8px 22px; line-height: 1.5; }
+        .card p { line-height: 1.5; margin-bottom: 6px; }
+
+        .alg-box {
+            background: #fff;
+            border: 2px solid #b8b2e6;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .alg-box .alg-name { font-weight: bold; color: #764ba2; }
+
+        .alg-text {
+            font-size: 1.3em;
+            font-weight: bold;
+            word-spacing: 0.3em;
+            margin: 4px 0;
+        }
+
+        .alg-box twisty-player { height: 240px; }
+
+        .algs-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .algs-2 > * { min-width: 0; }
+
+        @media (max-width: 760px) {
+            .moves { grid-template-columns: repeat(4, 1fr); }
+            .algs-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>⬟ Megaminx Lab</h1>
+            <nav class="site-nav" data-current="megaminx.html"></nav>
+        </header>
+
+        <div class="warn" id="loadWarn">
+            Couldn't load the 3D Megaminx (are you offline?). You can still read the method, but the moving
+            Megaminxes and the quiz need the internet.
+        </div>
+
+        <p class="intro">The <b>Megaminx</b> is a <b>dodecahedron</b>: 12 faces, each a pentagon, with 50 pieces that move.
+            It's solved a lot like a 3x3, just with more of everything. Learn the moves, then follow the
+            beginner method below. Time your solves in the <a href="rubiks.html">⏱ Timer</a>
+            (choose <b>Megaminx</b> as the event).</p>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="notation">🔤 Moves</button>
+            <button class="tab" data-tab="method">📖 How to solve it</button>
+        </div>
+
+        <!-- ============ MOVES ============ -->
+        <section class="panel active" id="panel-notation">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Try the moves</h2>
+                    <twisty-player id="notationPlayer" puzzle="megaminx" control-panel="none"
+                        background="none"></twisty-player>
+                    <div class="moves" id="moveButtons"></div>
+                    <div class="moves" id="wcaButtons"></div>
+                    <div class="row" style="margin-top:8px">
+                        <button id="resetMinx">Reset</button>
+                    </div>
+                    <div class="history" id="history"></div>
+                    <p class="note">Tip: drag the Megaminx to spin it around and see the back.</p>
+                </div>
+                <div class="card">
+                    <h2>How to read it</h2>
+                    <p>Hold it with <b>white on top</b> and <b>green at the front</b>. The top face is <b>U</b>, and the
+                        five faces around it are:</p>
+                    <div class="face-key">
+                        <div><b>F</b><span>Front (facing you)</span></div>
+                        <div><b>R</b><span>Right</span></div>
+                        <div><b>L</b><span>Left</span></div>
+                        <div><b>BR</b><span>Back-right</span></div>
+                        <div><b>BL</b><span>Back-left</span></div>
+                    </div>
+                    <p style="margin-top:8px">The lower faces are <b>FR</b> and <b>FL</b> (below the front corners), <b>DR</b>, <b>DL</b>,
+                        <b>B</b> and <b>D</b> (the bottom).</p>
+                    <p>A letter alone = turn that face a <b>fifth</b> of a turn <b>clockwise</b>, as if you were looking straight at it.
+                        <b>'</b> ("prime") = counter-clockwise. <b>2</b> = two-fifths, so <b>U2</b> is the same as <b>U U</b>.</p>
+                    <h3>Scrambles (the dashed buttons)</h3>
+                    <p>Official scrambles use big moves instead:</p>
+                    <ul>
+                        <li><b>R++</b> / <b>R--</b>: hold the left part still and turn everything else two-fifths of a turn.</li>
+                        <li><b>D++</b> / <b>D--</b>: hold the top face still and turn everything under it two-fifths of a turn.</li>
+                        <li><b>U</b> / <b>U'</b>: turn just the top face, as usual.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Name that move!</h2>
+                <div class="grid-2">
+                    <twisty-player id="quizPlayer" puzzle="megaminx" control-panel="none"
+                        background="none" tempo-scale="0.6"></twisty-player>
+                    <div>
+                        <div class="row">
+                            <select id="quizLevel" aria-label="Level">
+                                <option value="easy">Easy: U, R, F</option>
+                                <option value="hard">Hard: U, R, F, L, BL, BR</option>
+                            </select>
+                            <button id="quizReplay">Replay</button>
+                        </div>
+                        <p style="margin-top:8px">Streak: <b id="streak">0</b> (best <b id="bestStreak">0</b>)</p>
+                        <div class="choices" id="choices"></div>
+                        <div class="feedback" id="feedback"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ METHOD ============ -->
+        <section class="panel" id="panel-method">
+            <div class="card">
+                <h2>The plan</h2>
+                <p>If you can solve a 3x3 with the beginner method, you already know most of this! You build the
+                    Megaminx one ring at a time, from one face down to the opposite face.</p>
+                <ol>
+                    <li><b>Star</b>: the 5 edges around your first face.</li>
+                    <li><b>First-face corners</b> with the <b>corner trick</b>.</li>
+                    <li><b>The rings in the middle</b>, by feel, with the <b>edge tricks</b> and the corner trick.</li>
+                    <li><b>Last face</b>: 4 small steps, with the Flip, the Sune (or Gap Sune), the Niklas and the corner trick again.</li>
+                </ol>
+                <p class="note">In the moving pictures the top face is always the one you're working on, so it's white there.
+                    On your Megaminx, start with any colour you like.</p>
+            </div>
+
+            <div class="card">
+                <h2><span class="step-num">1</span>The star</h2>
+                <p>Pick a first face and keep it on <b>top</b>. Bring its 5 edges up around the centre so it makes a <b>star</b>.
+                    Each edge's other colour must match the side centre next to it.</p>
+                <ul>
+                    <li>Do it by feel, like the cross on a 3x3. Find an edge, turn its side face to bring it up, and check the colours.</li>
+                    <li>If putting an edge in knocks out one you already placed, turn that side back and try from the other way.</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2><span class="step-num">2</span>First-face corners</h2>
+                <p>Still with the first face on top: find a corner that belongs on it. Turn the lower faces to bring it
+                    <b>right under</b> its spot, so it sits below the top-front-right corner. Then do the <b>corner trick</b>
+                    until the corner is in and its colour is on top. It takes 1 to 5 goes.</p>
+                <p>The corner trick never moves the other top pieces, so you can't break your star.</p>
+                <div class="alg-box">
+                    <div class="alg-name">🔺 Corner trick</div>
+                    <div class="alg-text" data-alg="trigger"></div>
+                    <twisty-player class="method-player" data-alg="trigger" puzzle="megaminx" background="none"></twisty-player>
+                    <p class="note">FR is the face under the front-right edge. Do it 6 times and everything is back where it started.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><span class="step-num">3</span>The rings in the middle</h2>
+                <p>Turn the Megaminx over so your first face is on the <b>bottom</b>. Now fill in the next rings,
+                    one at a time, going up. This part is done by feel, like F2L on a 3x3. The tricks help:</p>
+                <ul>
+                    <li><b>An edge:</b> tilt the Megaminx so a face with <b>nothing solved on it</b> is on top, the gap is
+                        just below its <b>front-right</b> (or front-left) edge, and the edge you want is at its top-front.
+                        Do the edge trick for that side. It only moves pieces on the top face, plus the gap.</li>
+                    <li><b>A corner:</b> tilt it the same way, with the corner's spot at the top-front-right and the corner
+                        just under it, and do the corner trick until it's in.</li>
+                    <li>A piece stuck in the wrong spot? Use a trick to pop it out to the top first, then put it in properly.</li>
+                </ul>
+                <div class="algs-2">
+                    <div class="alg-box">
+                        <div class="alg-name">➡️ Edge trick, right</div>
+                        <div class="alg-text" data-alg="edgeRight"></div>
+                        <twisty-player class="method-player" data-alg="edgeRight" puzzle="megaminx" background="none"
+                            experimental-setup-anchor="end"></twisty-player>
+                    </div>
+                    <div class="alg-box">
+                        <div class="alg-name">⬅️ Edge trick, left</div>
+                        <div class="alg-text" data-alg="edgeLeft"></div>
+                        <twisty-player class="method-player" data-alg="edgeLeft" puzzle="megaminx" background="none"
+                            experimental-setup-anchor="end"></twisty-player>
+                    </div>
+                </div>
+                <p style="margin-top:8px">Keep going until only the <b>last face</b> (the top) is left.</p>
+            </div>
+
+            <div class="card">
+                <h2><span class="step-num">4</span>The last face</h2>
+                <p>Hold the Megaminx with the unsolved face on <b>top</b> from now on. "Turn the Megaminx" below means turn
+                    the whole puzzle in your hands, keeping that face on top.</p>
+
+                <h3>4a. Make a star: flip the edges</h3>
+                <p>Count the top edges whose top colour is <b>not</b> facing up:</p>
+                <ul>
+                    <li><b>4 wrong:</b> turn the Megaminx so the one good edge is at the <b>back-left</b>. Do the flip.</li>
+                    <li><b>2 wrong, next to each other:</b> hold them at the <b>front</b> and <b>right</b>. Do the flip.</li>
+                    <li><b>2 wrong, with a gap:</b> hold them at the <b>front</b> and <b>back-right</b>. Do the flip. Star done!</li>
+                </ul>
+                <div class="alg-box">
+                    <div class="alg-name">🔃 Flip</div>
+                    <div class="alg-text" data-alg="flip"></div>
+                    <twisty-player class="method-player" data-alg="flip" puzzle="megaminx" background="none"
+                        experimental-setup-anchor="end" experimental-stickering="EOLL"></twisty-player>
+                </div>
+
+                <h3>4b. Put the edges in place</h3>
+                <p>Turn the top (U) until as many top edges as possible match the side centres. Then:</p>
+                <ul>
+                    <li><b>2 match, next to each other:</b> turn the Megaminx so they're at the <b>front</b> and <b>left</b>. Do the
+                        <b>Sune</b>, then turn the top to check. Not done? Do it again.</li>
+                    <li><b>2 match, with a gap:</b> hold them at the <b>front</b> and <b>back-right</b>. Do the <b>Gap Sune</b>,
+                        then turn the top to check. Not done? Do it again.</li>
+                    <li><b>Only 1 matches:</b> do the Sune from anywhere, then look again.</li>
+                </ul>
+                <div class="algs-2">
+                    <div class="alg-box">
+                        <div class="alg-name">🌞 Sune</div>
+                        <div class="alg-text" data-alg="sune"></div>
+                        <twisty-player class="method-player" data-alg="sune" puzzle="megaminx" background="none"
+                            experimental-setup-anchor="end" experimental-stickering="ELL"></twisty-player>
+                        <p class="note">The front and left edges stay put.</p>
+                    </div>
+                    <div class="alg-box">
+                        <div class="alg-name">🌗 Gap Sune</div>
+                        <div class="alg-text" data-alg="gapSune"></div>
+                        <twisty-player class="method-player" data-alg="gapSune" puzzle="megaminx" background="none"
+                            experimental-setup-anchor="end" experimental-stickering="ELL"></twisty-player>
+                        <p class="note">The front and back-right edges stay put.</p>
+                    </div>
+                </div>
+
+                <h3>4c. Put the corners in place</h3>
+                <p>A corner is in the right place if it has the right three colours for its spot, even if it's twisted.
+                    The <b>Niklas</b> moves three corners round; the two corners on the <b>left</b> never move.</p>
+                <ul>
+                    <li><b>2 right, next to each other:</b> turn the Megaminx so they're on the <b>left</b> (front-left and back-left).
+                        Do the Niklas. Not done? Do it again.</li>
+                    <li><b>2 right, with a gap:</b> hold them at the <b>back-left</b> and <b>front-right</b>. Do the Niklas and look again.</li>
+                    <li><b>Just 1 right:</b> hold it at the <b>front-left</b>. Do the Niklas and look again.</li>
+                    <li><b>None right:</b> do the Niklas from anywhere and look again.</li>
+                </ul>
+                <div class="alg-box">
+                    <div class="alg-name">🔁 Niklas</div>
+                    <div class="alg-text" data-alg="niklas"></div>
+                    <twisty-player class="method-player" data-alg="niklas" puzzle="megaminx" background="none"
+                        experimental-setup-anchor="end" experimental-stickering="CPLL"></twisty-player>
+                </div>
+
+                <h3>4d. Twist the corners</h3>
+                <p>Hold a twisted corner at the <b>top-front-right</b>. Do the corner trick <b>twice</b>. Still twisted? Twice more.
+                    The middle of the puzzle looks messed up while you do this. <b>Don't panic</b>, it comes back!</p>
+                <p>Now turn <b>only the top (U)</b> to bring the next twisted corner to the front-right, and do the same.
+                    Never turn the whole Megaminx in this step. When every corner is done, turn the top to line it up. Solved! 🎉</p>
+                <div class="alg-box">
+                    <div class="alg-name">🔺 Corner trick ×2</div>
+                    <div class="alg-text" data-alg="triggerTwice"></div>
+                    <twisty-player class="method-player" data-alg="triggerTwice" puzzle="megaminx" background="none"></twisty-player>
+                </div>
+                <p class="note">We checked the last-face steps on a computer with cubing.js: following these rules solved all of
+                    3,000 random last faces. The middle rings are done by feel, so the computer didn't check those.</p>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        import "./js/nav.js";
+        import { checkAchievements } from "./js/progress.js";
+
+        const ALGS = {
+            trigger: "R' FR' R FR",
+            triggerTwice: "R' FR' R FR R' FR' R FR",
+            edgeRight: "U R U' R' U' F' U F",
+            edgeLeft: "U' L' U L U F U' F'",
+            flip: "F R U R' U' F'",
+            sune: "R U R' U R U2' R'",
+            gapSune: "R U2 R' U R U2 R'",
+            niklas: "R U2' L' U2 R' U2' L U2",
+        };
+        const FACES = ["U", "R", "F", "L", "BL", "BR"];
+        const WCA_MOVES = ["R++", "R--", "D++", "D--", "U", "U'"];
+
+        // cubing.js (https://js.cubing.net/cubing/) draws the Megaminx. Without it, only the text works.
+        let loaded = false;
+        try {
+            await import("https://cdn.cubing.net/v0/js/cubing/twisty"); // registers <twisty-player>
+            loaded = true;
+        } catch (err) {
+            console.error("cubing.js failed to load", err);
+            document.getElementById("loadWarn").style.display = "block";
+        }
+
+        const $ = (id) => document.getElementById(id);
+        const pick = (list) => list[Math.floor(Math.random() * list.length)];
+        const shuffle = (list) => list
+            .map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+        const load = (key, fallback) => {
+            try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+        };
+        const save = (key, value) => {
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+        };
+
+        function playOn(player, setup, alg) {
+            player.experimentalSetupAlg = setup;
+            player.alg = alg;
+            player.jumpToStart();
+            setTimeout(() => player.play(), 250);
+        }
+
+        // ---------- Tabs ----------
+        function showTab(name) {
+            document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === name));
+            document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + name));
+        }
+        document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => showTab(tab.dataset.tab)));
+
+        // ---------- Moves: try them ----------
+        const notationPlayer = $("notationPlayer");
+        const history = [];
+        function addMove(move) {
+            if (!loaded) return;
+            playOn(notationPlayer, history.join(" "), move);
+            history.push(move);
+            $("history").textContent = history.join(" ");
+        }
+        for (const face of FACES) {
+            for (const move of [face, face + "'"]) {
+                const btn = document.createElement("button");
+                btn.textContent = move;
+                btn.addEventListener("click", () => addMove(move));
+                $("moveButtons").append(btn);
+            }
+        }
+        for (const move of WCA_MOVES) {
+            const btn = document.createElement("button");
+            btn.className = "wca";
+            btn.textContent = move;
+            btn.addEventListener("click", () => addMove(move));
+            $("wcaButtons").append(btn);
+        }
+        $("resetMinx").addEventListener("click", () => {
+            if (!loaded) return;
+            history.length = 0;
+            notationPlayer.experimentalSetupAlg = "";
+            notationPlayer.alg = "";
+            $("history").textContent = "";
+        });
+
+        // ---------- Moves: quiz ----------
+        const quizPlayer = $("quizPlayer");
+        let quizAnswer = null;
+        let answered = false;
+        let streak = 0;
+        let bestStreak = Number(load("megaminxBestStreak", 0)) || 0;
+        $("bestStreak").textContent = bestStreak;
+
+        function newQuestion() {
+            const faces = $("quizLevel").value === "easy" ? ["U", "R", "F"] : FACES;
+            const moves = faces.flatMap((f) => [f, f + "'"]);
+            quizAnswer = pick(moves);
+            answered = false;
+            // The answer, the same face the other way (the tricky one), and two other moves.
+            const opposite = quizAnswer.endsWith("'") ? quizAnswer.slice(0, -1) : quizAnswer + "'";
+            const others = shuffle(moves.filter((m) => m !== quizAnswer && m !== opposite));
+            const options = shuffle([quizAnswer, opposite, ...others.slice(0, 2)]);
+            $("choices").innerHTML = "";
+            for (const move of options) {
+                const btn = document.createElement("button");
+                btn.textContent = move;
+                btn.addEventListener("click", () => answer(btn, move));
+                $("choices").append(btn);
+            }
+            $("feedback").textContent = "Watch the Megaminx… which move was that?";
+            playOn(quizPlayer, "", quizAnswer);
+        }
+
+        function answer(btn, move) {
+            if (answered) return;
+            answered = true;
+            const correct = move === quizAnswer;
+            if (correct) {
+                streak++;
+                if (streak > bestStreak) {
+                    bestStreak = streak;
+                    save("megaminxBestStreak", bestStreak);
+                    checkAchievements();
+                }
+                $("feedback").textContent = "✅ Yes! Next one coming…";
+            } else {
+                streak = 0;
+                $("feedback").textContent = `❌ That was ${quizAnswer}. Next one coming…`;
+                btn.classList.add("wrong");
+            }
+            $("choices").querySelectorAll("button").forEach((b) => {
+                if (b.textContent === quizAnswer) b.classList.add("right");
+            });
+            $("streak").textContent = streak;
+            $("bestStreak").textContent = bestStreak;
+            setTimeout(newQuestion, 1500);
+        }
+
+        $("quizReplay").addEventListener("click", () => quizAnswer && playOn(quizPlayer, "", quizAnswer));
+        $("quizLevel").addEventListener("change", () => {
+            streak = 0;
+            $("streak").textContent = 0;
+            newQuestion();
+        });
+
+        // ---------- Method ----------
+        document.querySelectorAll(".alg-text[data-alg]").forEach((el) => {
+            el.textContent = ALGS[el.dataset.alg];
+        });
+        document.querySelectorAll(".method-player").forEach((p) => {
+            p.alg = ALGS[p.dataset.alg];
+            if (loaded) p.jumpToStart(); // show where it starts; press play to watch
+        });
+
+        // ---------- Start ----------
+        checkAchievements();
+        if (loaded) newQuestion();
+    </script>
+</body>
+</html>
