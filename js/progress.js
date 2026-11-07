@@ -86,6 +86,7 @@ export function gatherStats() {
     const flags = load("cubeLabFlags", {});
     const bestStreak = Number(load("cubeLabBestStreak", 0)) || 0;
     const skewbBestStreak = Number(load("skewbBestStreak", 0)) || 0;
+    const megaminxBestStreak = Number(load("megaminxBestStreak", 0)) || 0;
 
     const events = {};
     for (const [eventId, solves] of Object.entries(timer)) {
@@ -132,6 +133,7 @@ export function gatherStats() {
         learnedTwoLook: learned(twoLookIds),
         bestStreak,
         skewbBestStreak,
+        megaminxBestStreak,
         flags,
     };
 }
@@ -141,6 +143,7 @@ const S = 1000;
 const best333 = (st) => st.events["333"]?.bestSingle ?? Infinity;
 const ao5333 = (st) => st.events["333"]?.bestAo5 ?? Infinity;
 const bestSkewb = (st) => st.events.skewb?.bestSingle ?? Infinity;
+const bestMinx = (st) => st.events.minx?.bestSingle ?? Infinity;
 const smartAny = (st, fn) => st.smart.some(fn);
 
 export const RARITY = {
@@ -159,7 +162,7 @@ export const ACHIEVEMENTS = [
     ["days-5", "Daily Cuber", "Solve on 5 different days", "rare", (st) => st.days >= 5],
     ["days-30", "Dedicated", "Solve on 30 different days", "legendary", (st) => st.days >= 30],
     ["events-3", "Collector", "Solve 3 different puzzles", "rare", (st) => st.eventCount >= 3],
-    ["events-5", "Puzzle Master", "Solve all 5 timer puzzles", "epic", (st) => st.eventCount >= 5],
+    ["events-5", "Puzzle Master", "Solve 5 different timer puzzles", "epic", (st) => st.eventCount >= 5],
     // 3x3 speed
     ["sub-60", "Sub-1 Minute", "3x3 single under 60 seconds", "common", (st) => best333(st) < 60 * S],
     ["sub-45", "Sub-45", "3x3 single under 45 seconds", "common", (st) => best333(st) < 45 * S],
@@ -199,6 +202,11 @@ export const ACHIEVEMENTS = [
     ["skewb-streak", "Corner Spotter", "Skewb Name That Move streak of 10", "common", (st) => st.skewbBestStreak >= 10],
     ["skewb-sub-30", "Skewb Sub-30", "Skewb single under 30 seconds", "rare", (st) => bestSkewb(st) < 30 * S],
     ["skewb-sub-10", "Skewb Sub-10", "Skewb single under 10 seconds", "epic", (st) => bestSkewb(st) < 10 * S],
+    // Megaminx
+    ["minx-1", "Dodecahedron", "Time your first Megaminx solve", "common", (st) => (st.events.minx?.count ?? 0) >= 1],
+    ["minx-streak", "Twelve Faces", "Megaminx Name That Move streak of 10", "common", (st) => st.megaminxBestStreak >= 10],
+    ["minx-sub-5", "Megaminx Sub-5", "Megaminx single under 5 minutes", "rare", (st) => bestMinx(st) < 5 * 60 * S],
+    ["minx-sub-2", "Megaminx Sub-2", "Megaminx single under 2 minutes", "epic", (st) => bestMinx(st) < 2 * 60 * S],
 ].map(([id, name, desc, rarity, test]) => ({ id, name, desc, rarity, test }));
 
 // ---------- XP and levels ----------

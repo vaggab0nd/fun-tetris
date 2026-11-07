@@ -93,6 +93,7 @@
             <a href="#timer">⏱ Timer</a>
             <a href="#algs">📚 Alg Trainer</a>
             <a href="#skewb">🔷 Skewb</a>
+            <a href="#megaminx">⬟ Megaminx</a>
             <a href="#smart">📡 Smart Cube</a>
             <a href="#solver">🤖 Solver</a>
             <a href="#trophies">🏆 Trophies</a>
@@ -114,7 +115,8 @@
                 <li><b>Check your progress.</b> <a href="trophies.html">🏆 Trophies</a> shows your level, your
                     achievements and how you rank against the world.</li>
             </ol>
-            <p>Got a <b>Skewb</b>? The <a href="skewb.html">🔷 Skewb Lab</a> teaches its moves and a 3-algorithm way to solve it.</p>
+            <p>Got a <b>Skewb</b>? The <a href="skewb.html">🔷 Skewb Lab</a> teaches its moves and a 3-algorithm way to solve it.
+                Got a <b>Megaminx</b>? The <a href="megaminx.html">⬟ Megaminx Lab</a> does the same.</p>
             <p>Just want to have fun? Try the <a href="solver.html">🤖 Solver</a>: scramble your cube and let the computer solve it.</p>
             <p class="note">Everything is saved in this browser on this device. Nothing is sent anywhere, and there's no account.</p>
         </section>
@@ -124,7 +126,7 @@
             <h2>⏱ Timer &amp; Notation</h2>
             <h3>Timing a solve</h3>
             <ol>
-                <li>Pick your puzzle in <b>Event</b> (3x3, 2x2, 4x4, Pyraminx or Skewb).</li>
+                <li>Pick your puzzle in <b>Event</b> (3x3, 2x2, 4x4, Pyraminx, Skewb or Megaminx).</li>
                 <li>Scramble your cube with the moves shown. The picture shows what it should look like.
                     <span class="btn-name">Show 3D</span> switches to a 3D view.</li>
                 <li>Press <kbd>Space</kbd> once (or tap the black timer) to start the <b>15-second inspection</b>.
@@ -213,6 +215,30 @@
             </ul>
             <p class="note">Want to time your Skewb solves? Use the <a href="rubiks.html">⏱ Timer</a> and choose <b>Skewb</b> as the event.</p>
             <a class="open-link" href="skewb.html">Open Skewb Lab →</a>
+        </section>
+
+        <!-- ================= MEGAMINX ================= -->
+        <section class="card" id="megaminx">
+            <h2>⬟ Megaminx Lab</h2>
+            <p>The Megaminx is a dodecahedron: 12 pentagon faces. It's solved like a big 3x3. Megaminx Lab has two tabs:</p>
+            <h3>🔤 Moves</h3>
+            <ul>
+                <li><b>Try the moves</b>: press a face button (U, R, F, L, BL, BR and the ' versions) and watch it turn a fifth of a turn.
+                    The dashed buttons are the big scramble moves (R++, D--…).</li>
+                <li><b>Name that move!</b>: the Megaminx does one move and you pick which. Start on Easy (U, R, F).</li>
+            </ul>
+            <h3>📖 How to solve it</h3>
+            <ol>
+                <li><b>Star</b>: the 5 edges around your first face.</li>
+                <li><b>First-face corners</b> with the corner trick, <b>R' FR' R FR</b>.</li>
+                <li><b>The middle rings</b>, by feel, with the edge tricks and the corner trick.</li>
+                <li><b>Last face</b>: Flip, Sune / Gap Sune, Niklas, then the corner trick to twist the corners.</li>
+            </ol>
+            <p>Each step says how to hold the Megaminx before the algorithm. The little Megaminxes play each algorithm:
+                use their play buttons to go step by step.</p>
+            <p class="note">Time your Megaminx solves in the <a href="rubiks.html">⏱ Timer</a> (Event: Megaminx). Megaminx scrambles
+                are 7 lines long, so allow a while to scramble!</p>
+            <a class="open-link" href="megaminx.html">Open Megaminx Lab →</a>
         </section>
 
         <!-- ================= SMART CUBE ================= -->
@@ -352,6 +378,9 @@
                     U top-left-back. Clockwise as you look at that corner. There are no "2" moves.</dd>
                 <dt>Sledgehammer</dt>
                 <dd>The Skewb algorithm R' B R B'. It twists the bottom corners and keeps the top layer safe.</dd>
+                <dt>Megaminx notation: U, R, F, L, BL, BR</dt>
+                <dd>The top face and the five faces around it. A letter turns that face a fifth of a turn clockwise; 2 means two-fifths.
+                    In scrambles, R++ / D++ turn most of the puzzle two-fifths of a turn.</dd>
                 <dt>CFOP</dt>
                 <dd>The method most speedcubers use: <b>C</b>ross, <b>F</b>2L, <b>O</b>LL, <b>P</b>LL.</dd>
                 <dt>Cross</dt>

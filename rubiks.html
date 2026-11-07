@@ -156,6 +156,7 @@
             word-spacing: 0.3em;
             margin: 10px 0;
             min-height: 1.5em;
+            white-space: pre-line; /* Megaminx scrambles come in lines */
         }
 
         twisty-player {
@@ -297,6 +298,7 @@
                         <option value="444">4x4</option>
                         <option value="pyram">Pyraminx</option>
                         <option value="skewb">Skewb</option>
+                        <option value="minx">Megaminx</option>
                     </select>
                     <label><input type="checkbox" id="inspectToggle" checked> 15s inspection</label>
                     <button id="newScramble">New scramble</button>
@@ -446,12 +448,30 @@
             "444": { puzzle: "4x4x4", faces: ["R", "L", "U", "D", "F", "B", "Rw", "Uw", "Fw"], length: 40 },
             "pyram": { puzzle: "pyraminx", faces: ["R", "L", "U", "B"], length: 10 },
             "skewb": { puzzle: "skewb", faces: ["R", "L", "U", "B"], length: 10 },
+            "minx": { puzzle: "megaminx" },
         };
 
         // Opposite faces on a cube (turning R then L then R again is wasteful).
         const AXIS = { R: "x", L: "x", Rw: "x", U: "y", D: "y", Uw: "y", F: "z", B: "z", Fw: "z" };
 
+        // Megaminx scrambles (WCA style): 7 lines of R++/R-- D++/D-- pairs, each ending in U or U'.
+        function megaminxScramble() {
+            const lines = [];
+            for (let line = 0; line < 7; line++) {
+                const moves = [];
+                let d = "++";
+                for (let i = 0; i < 5; i++) {
+                    d = Math.random() < 0.5 ? "++" : "--";
+                    moves.push("R" + (Math.random() < 0.5 ? "++" : "--"), "D" + d);
+                }
+                moves.push(d === "++" ? "U" : "U'");
+                lines.push(moves.join(" "));
+            }
+            return lines.join("\n");
+        }
+
         function fallbackScramble(eventId) {
+            if (eventId === "minx") return megaminxScramble();
             const { faces, length } = EVENTS[eventId];
             const cube = /^\d{3}$/.test(eventId); // 222, 333, 444
             const suffixes = cube ? ["", "'", "2"] : ["", "'"];

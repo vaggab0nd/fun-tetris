@@ -7,6 +7,7 @@ Web pages for Rubik's cube speedsolving, built on [cubing.js](https://js.cubing.
 |---|---|
 | ⏱ [`rubiks.html`](rubiks.html) **Timer & Notation** | Timing solves like at a competition, and learning to read cube notation |
 | 📚 [`algorithms.html`](algorithms.html) **Alg Trainer** | Learning last-layer algorithms (2-Look, OLL, PLL) and practising recognition |
+| ⬟ [`megaminx.html`](megaminx.html) **Megaminx Lab** | Megaminx moves (face turns and the WCA scramble moves) with a quiz, and a beginner method |
 | 🔷 [`skewb.html`](skewb.html) **Skewb Lab** | Skewb moves and a "name that move" quiz, a 3-algorithm beginner method, and a coach that says what to do next |
 | 📡 [`smartcube.html`](smartcube.html) **Smart Cube** | Bluetooth smart cubes (or a keyboard cube): automatic timing, CFOP splits, case recognition, replays |
 | 🤖 [`solver.html`](solver.html) **Solver** | Scan a real cube with the camera (or paint it in) and get a ~20 move solution to follow |
@@ -31,7 +32,7 @@ Alg Trainer still lists every algorithm; the pages show a notice when this happe
 
 ### Timer tab
 
-- **Events:** 3x3, 2x2, 4x4, Pyraminx, Skewb. Each event keeps its own list of solves.
+- **Events:** 3x3, 2x2, 4x4, Pyraminx, Skewb, Megaminx. Each event keeps its own list of solves.
 - **Scrambles:** random-state scrambles, the same kind used at WCA competitions, with a 2D or 3D
   picture of what the puzzle should look like after scrambling.
 - **Starting and stopping:**
@@ -132,6 +133,31 @@ How it was checked: the method rules live in `js/skewb-method.js`. They were run
 the 2,160 positions that have the white layer done (540 positions × 4 ways of holding it). Every one is solved, in 6
 algorithms or fewer. A full search of all 3,149,280 Skewb positions confirmed the white layer never needs more than 7 moves.
 
+## ⬟ Megaminx Lab (`megaminx.html`)
+
+- **Moves:** buttons for U, R, F, L, BL, BR (and primes) plus the WCA scramble moves R++, R--, D++, D--, U, U'
+  on a 3D Megaminx, a guide to the face names, and **Name that move!** (Easy: U, R, F; Hard: all six top faces).
+  The best streak is saved.
+- **How to solve it:** a beginner method that builds on the 3x3:
+  1. Star around the first face (intuitive).
+  2. First-face corners with the **corner trick** `R' FR' R FR`.
+  3. The middle rings by feel, with the **edge tricks** `U R U' R' U' F' U F` / `U' L' U L U F U' F'` and the corner trick.
+  4. Last face: **Flip** `F R U R' U' F'`; **Sune** `R U R' U R U2' R'` / **Gap Sune** `R U2 R' U R U2 R'`;
+     **Niklas** `R U2' L' U2 R' U2' L U2`; then the corner trick twice per twist.
+  Each algorithm plays on its own Megaminx; the last-face ones grey out the pieces that don't matter.
+- The Timer has a **Megaminx** event (official scrambles from cubing.js, or WCA-style R++/D++ lines offline).
+
+How it was checked, with cubing.js's Megaminx in Node:
+- Every algorithm's effect was read off piece by piece. The corner trick only swaps the front-right top corner with the
+  one under it (and touches nothing else on top); six in a row is the identity. The edge tricks only touch the top face
+  and the gap. The four last-face algorithms only touch the top face; Flip flips two edges; Sune and Gap Sune each
+  cycle three edges (keeping the front + left, or the front + back-right ones); Niklas cycles three corners and keeps
+  the two on the left.
+- The holding rules for each last-face step were worked out by trying every case, and then the whole last face was
+  followed rule by rule on 3,000 random last faces: all were solved (about 12 algorithms on average, 21 at most).
+- R++ really leaves the left face alone and D++ the top face, as the page says.
+- The middle rings aren't checked: like F2L, they're done by feel.
+
 ## 📡 Smart Cube (`smartcube.html`)
 
 ### Connecting
@@ -186,7 +212,7 @@ algorithms or fewer. A full search of all 3,149,280 Skewb positions confirmed th
 
 - **Level and XP:** earned by timed solves, Smart Cube solves, algorithms learned, and achievements.
   Titles go from *Cube Rookie* to *Cube Legend*.
-- **38 achievements:** Common, Rare, Epic and Legendary (Sub-30 Club, PLL Wizard, OLL skip, Jackpot for
+- **42 achievements:** Common, Rare, Epic and Legendary (Sub-30 Club, PLL Wizard, OLL skip, Jackpot for
   a full last-layer skip, and more). A pop-up appears on any page the moment one unlocks.
 - **World ranking:** his best single and ao5 for each event compared with every official WCA competitor,
   e.g. "World rank about #80,954 of 281,083, faster than 71.2%". There's also a calculator for any
@@ -216,6 +242,7 @@ Everything is stored in the browser's `localStorage`. Nothing is sent anywhere.
 | `cubeLabAlgStatus` | Not started / Learning / Learned for each case |
 | `cubeLabSmartSolves` | Smart Cube solves (times, splits, cases, moves for replays) |
 | `skewbBestStreak` | Best Skewb "Name that move!" streak |
+| `megaminxBestStreak` | Best Megaminx "Name that move!" streak |
 | `cubeLabFlags` | Whether the Solver / camera scan / Skewb coach has been used (for achievements) |
 | `cubeLabAchievementsSeen`, `cubeLabLevelSeen` | Which achievements and level have already had a pop-up |
 
